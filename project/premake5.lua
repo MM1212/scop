@@ -9,7 +9,16 @@ project "Scop"
   buildoptions { "-Wall", "-Wextra", "-Werror" }
 
   files {
-    "src/**.cpp"
+    "src/**.cpp",
+    "shaders/**.vert",
+    "shaders/**.frag"
+  }
+
+  defines {
+    "GLFW_INCLUDE_VULKAN",
+    "GLM_FORCE_RADIANS",
+    "GLM_FORCE_DEPTH_ZERO_TO_ONE",
+    ('SHADERS_PATH="bin/%s/%%{prj.name}/shaders/"'):format(outputdir)
   }
 
   includedirs {
@@ -37,3 +46,14 @@ project "Scop"
     defines { "RELEASE" }
     runtime "Release"
     optimize "On"
+
+  filter "files:**.vert or **.frag"
+    buildmessage "Compiling %{file.relpath}"
+    buildcommands {
+      "mkdir -p %{cfg.targetdir}/shaders",
+      "glslc %{file.relpath} -o %{cfg.targetdir}/shaders/%{file.basename}%{file.extension}.spv"
+    }
+    buildoutputs {
+      "%{cfg.targetdir}/shaders/%{file.basename}%{file.extension}.spv"
+    }
+-- include "shaders"

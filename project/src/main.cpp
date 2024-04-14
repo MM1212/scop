@@ -1,18 +1,16 @@
-#include <scop.hpp>
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include <App.h>
+#include <stdexcept>
+#include <iostream>
 
 int main() {
+  Scop::App app{};
 
-  std::cout << "Hello, World!" << std::endl;
-  std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
-  bool vulkanSupported = glfwVulkanSupported();
-  std::cout << "Vulkan supported: " << vulkanSupported << std::endl;
-  uint32_t count;
-  const char** extensions = glfwGetRequiredInstanceExtensions(&count);
-  std::cout << "Required extensions: " << count << std::endl;
-  for (uint32_t i = 0; i < count; i++) {
-    std::cout << extensions[i] << std::endl;
+  try {
+    app.run();
   }
-  return 0;
+  catch (const std::exception& e) {
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }
