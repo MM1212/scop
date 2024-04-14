@@ -13,6 +13,16 @@ using namespace Scop::Renderer;
 
 Swapchain::Swapchain(Device& deviceRef, VkExtent2D extent)
   : device{ deviceRef }, windowExtent{ extent } {
+  this->init();
+}
+
+Swapchain::Swapchain(Device& deviceRef, VkExtent2D extent, std::shared_ptr<Swapchain> previous)
+  : device{ deviceRef }, windowExtent{ extent }, oldSwapchain{ previous } {
+  this->init();
+  oldSwapchain = nullptr;
+}
+
+void Swapchain::init() {
   this->createSwapChain();
   this->createImageViews();
   this->createRenderPass();
@@ -163,7 +173,7 @@ void Swapchain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = oldSwapchain == nullptr ? VK_NULL_HANDLE : oldSwapchain->swapChain;
 
   if (vkCreateSwapchainKHR(device.getHandle(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
@@ -363,7 +373,7 @@ void Swapchain::createSyncObjects() {
 VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(
   const std::vector<VkSurfaceFormatKHR>& availableFormats) {
   for (const auto& availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
       availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }
@@ -374,6 +384,7 @@ VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(
 
 VkPresentModeKHR Swapchain::chooseSwapPresentMode(
   const std::vector<VkPresentModeKHR>& availablePresentModes) {
+  (void)availablePresentModes;
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       std::cout << "Present mode: Mailbox" << std::endl;

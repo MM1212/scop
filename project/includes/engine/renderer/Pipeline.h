@@ -8,14 +8,19 @@ namespace Scop::Renderer {
   class Pipeline {
   public:
     struct ConfigInfo {
-      VkViewport viewport;
-      VkRect2D scissor;
+      ConfigInfo() = default;
+      ConfigInfo(const ConfigInfo&) = delete;
+      ConfigInfo& operator=(const ConfigInfo&) = delete;
+
+      VkPipelineViewportStateCreateInfo viewportInfo;
       VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
       VkPipelineRasterizationStateCreateInfo rasterizerInfo;
       VkPipelineMultisampleStateCreateInfo multisamplingInfo;
       VkPipelineColorBlendAttachmentState colorBlendAttachment;
       VkPipelineColorBlendStateCreateInfo colorBlendingInfo;
       VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+      std::vector<VkDynamicState> dynamicStateEnables;
+      VkPipelineDynamicStateCreateInfo dynamicStateInfo;
       VkPipelineLayout pipelineLayout = nullptr;
       VkRenderPass renderPass = nullptr;
       uint32_t subpass = 0;
@@ -31,7 +36,7 @@ namespace Scop::Renderer {
     Pipeline& operator=(const Pipeline&) = delete;
 
     void bind(VkCommandBuffer commandBuffer);
-    static ConfigInfo CreateDefaultConfigInfo(glm::uvec2 size);
+    static void SetupDefaultConfigInfo(ConfigInfo& configInfo);
   private:
     static std::vector<uint8_t> ReadFile(const std::string_view filePath);
 

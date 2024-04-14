@@ -1,5 +1,6 @@
 #include "engine/renderer/Pipeline.h"
 
+#include <engine/renderer/Model.hpp>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -68,19 +69,14 @@ void Pipeline::createGraphicsPipeline(
   shaderStages[1].pNext = nullptr;
   shaderStages[1].pSpecializationInfo = nullptr;
 
+  auto bindingDescriptions = Model::Vertex::GetBindingDescriptions();
+  auto attributeDescriptions = Model::Vertex::GetAttributeDescriptions();
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputInfo.vertexBindingDescriptionCount = 0;
-  vertexInputInfo.vertexAttributeDescriptionCount = 0;
-  vertexInputInfo.pVertexBindingDescriptions = nullptr;
-  vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-
-  VkPipelineViewportStateCreateInfo viewportInfo{};
-  viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  viewportInfo.viewportCount = 1;
-  viewportInfo.pViewports = &configInfo.viewport;
-  viewportInfo.scissorCount = 1;
-  viewportInfo.pScissors = &configInfo.scissor;
+  vertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
+  vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+  vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -88,12 +84,12 @@ void Pipeline::createGraphicsPipeline(
   pipelineInfo.pStages = shaderStages;
   pipelineInfo.pVertexInputState = &vertexInputInfo;
   pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-  pipelineInfo.pViewportState = &viewportInfo;
+  pipelineInfo.pViewportState = &configInfo.viewportInfo;
   pipelineInfo.pRasterizationState = &configInfo.rasterizerInfo;
   pipelineInfo.pMultisampleState = &configInfo.multisamplingInfo;
   pipelineInfo.pColorBlendState = &configInfo.colorBlendingInfo;
   pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
-  pipelineInfo.pDynamicState = nullptr;
+  pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
   pipelineInfo.layout = configInfo.pipelineLayout;
   pipelineInfo.renderPass = configInfo.renderPass;
   pipelineInfo.subpass = configInfo.subpass;
@@ -121,22 +117,16 @@ void Pipeline::createShaderModule(const std::vector<uint8_t>& code, VkShaderModu
   }
 }
 
-Pipeline::ConfigInfo Pipeline::CreateDefaultConfigInfo(glm::uvec2 size) {
-  Pipeline::ConfigInfo configInfo{};
-
+void Pipeline::SetupDefaultConfigInfo(Pipeline::ConfigInfo& configInfo) {
   configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-  configInfo.viewport.x = 0.0f;
-  configInfo.viewport.y = 0.0f;
-  configInfo.viewport.width = static_cast<float>(size.x);
-  configInfo.viewport.height = static_cast<float>(size.y);
-  configInfo.viewport.minDepth = 0.0f;
-  configInfo.viewport.maxDepth = 1.0f;
-
-  configInfo.scissor.offset = { 0, 0 };
-  configInfo.scissor.extent = { size.x, size.y };
+  configInfo.viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  configInfo.viewportInfo.viewportCount = 1;
+  configInfo.viewportInfo.pViewports = nullptr;
+  configInfo.viewportInfo.scissorCount = 1;
+  configInfo.viewportInfo.pScissors = nullptr;
 
   configInfo.rasterizerInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   configInfo.rasterizerInfo.depthClampEnable = VK_FALSE;
@@ -190,8 +180,11 @@ Pipeline::ConfigInfo Pipeline::CreateDefaultConfigInfo(glm::uvec2 size) {
   configInfo.depthStencilInfo.front = {};
   configInfo.depthStencilInfo.back = {};
 
-
-  return configInfo;
+  configInfo.dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+  configInfo.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+  configInfo.dynamicStateInfo.dynamicStateCount = configInfo.dynamicStateEnables.size();
+  configInfo.dynamicStateInfo.pDynamicStates = configInfo.dynamicStateEnables.data();
+  configInfo.dynamicStateInfo.flags = 0;
 }
 
 void Pipeline::bind(VkCommandBuffer commandBuffer) {

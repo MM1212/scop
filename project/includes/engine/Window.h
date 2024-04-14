@@ -21,12 +21,16 @@ namespace Scop {
     bool shouldClose() const { return glfwWindowShouldClose(this->handle); }
     void close() { glfwSetWindowShouldClose(this->handle, GLFW_TRUE); }
     void pollEvents() { glfwPollEvents(); }
+    bool wasResized() const { return this->resized; }
+    void resetResizedFlag() { this->resized = false; }
 
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
   private:
+    static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
     void init();
 
-    const glm::uvec2 size;
+    glm::uvec2 size;
+    bool resized = false;
     const std::string_view title;
     GLFWwindow* handle;
   };
