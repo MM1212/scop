@@ -1,10 +1,16 @@
 #include "App.h"
 
+#include <glm/glm.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <array>
 
 using Scop::App;
+
+struct SimplePushConstantData {
+  glm::vec2 offset;
+  alignas(16) glm::vec3 color;
+};
 
 App::App() {
   this->loadModels();
@@ -36,12 +42,17 @@ void App::loadModels() {
 }
 
 void App::createPipelineLayout() {
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+  pushConstantRange.offset = 0;
+  pushConstantRange.size = sizeof(SimplePushConstantData);
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount = 0;
   pipelineLayoutInfo.pSetLayouts = nullptr;
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
-  pipelineLayoutInfo.pPushConstantRanges = nullptr;
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
   if (vkCreatePipelineLayout(this->device.getHandle(), &pipelineLayoutInfo, nullptr, &this->pipelineLayout) != VK_SUCCESS)
     throw std::runtime_error("Failed to create pipeline layout");
@@ -108,6 +119,9 @@ void App::freeCommandBuffers() {
 }
 
 void App::recordCommandBuffer(uint32_t imageIndex) {
+  static uint32_t frame = 0;
+  frame = (frame + 1) % 1000;
+
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -122,7 +136,7 @@ void App::recordCommandBuffer(uint32_t imageIndex) {
   renderPassInfo.renderArea.extent = this->swapchain->getSwapChainExtent();
 
   std::array<VkClearValue, 2> clearValues{};
-  clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+  clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
   clearValues[1].depthStencil = { 1.0f, 0 };
 
   renderPassInfo.clearValueCount = clearValues.size();
@@ -131,7 +145,7 @@ void App::recordCommandBuffer(uint32_t imageIndex) {
   vkCmdBeginRenderPass(this->commandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
   VkViewport viewport{};
-  VkRect2D scissor{{0,0}, this->swapchain->getSwapChainExtent()};
+  VkRect2D scissor{ {0,0}, this->swapchain->getSwapChainExtent() };
   viewport.x = 0.0f;
   viewport.y = 0.0f;
   viewport.width = this->swapchain->getSwapChainExtent().width;
@@ -144,7 +158,20 @@ void App::recordCommandBuffer(uint32_t imageIndex) {
 
   this->pipeline->bind(this->commandBuffers[imageIndex]);
   this->model->bind(this->commandBuffers[imageIndex]);
-  this->model->draw(this->commandBuffers[imageIndex]);
+  for (uint32_t i = 0; i < 4; i++) {
+    SimplePushConstantData data;
+    data.offset = { -0.4f + frame * 0.002f, -0.4f + 0.2f * i };
+    data.color = { 1.0f, 0.1f * i, 0.1f * i };
+    vkCmdPushConstants(
+      this->commandBuffers[imageIndex],
+      this->pipelineLayout,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(SimplePushConstantData),
+      &data
+    );
+    this->model->draw(this->commandBuffers[imageIndex]);
+  }
   vkCmdEndRenderPass(this->commandBuffers[imageIndex]);
   if (vkEndCommandBuffer(this->commandBuffers[imageIndex]) != VK_SUCCESS)
     throw std::runtime_error("Failed to record command buffer");
