@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/project/includes",
+        "${workspaceFolder}/vendor/glfw/include",
+        "${workspaceFolder}/vendor/glm",
+        "${workspaceFolder}/vendor/entt/src"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/clang",
+      "cppStandard": "c++23",
+      "intelliSenseMode": "linux-clang-x64"
+    }
+  ],
+  "version": 4
+}
