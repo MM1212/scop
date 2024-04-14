@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utils/Random.h>
 
 namespace Scop::Components {
   struct ID {
@@ -18,6 +19,8 @@ namespace Scop::Components {
     ID(const ID&) = default;
     ID& operator=(const ID&) = default;
     ID(const std::string_view tag, const uint64_t id) : tag(tag), id(id) {}
-    static uint64_t NewRandomId();
+    static uint64_t GenerateId() {
+      return Utils::Random::Int<uint64_t>();
+    }
   };
 }

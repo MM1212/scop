@@ -1,4 +1,4 @@
-#include "engine/renderer/Model.hpp"
+#include "engine/renderer/Model.h"
 #include <cassert>
 #include <cstring>
 #include <stdexcept>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <engine/renderer/Model.hpp>
+#include <engine/renderer/Model.h>
 #include <memory>
 
 namespace Scop::Components {

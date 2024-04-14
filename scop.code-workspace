@@ -14,8 +14,8 @@
       "**/.DS_Store": true,
       "**/Thumbs.db": true,
       "**/*.o": true,
-      "**/*.d": true
-      // "vendor/**/*": true
+      "**/*.d": true,
+      "vendor/**/*": true
     },
     "files.associations": {
       ".env.production": "dotenv",

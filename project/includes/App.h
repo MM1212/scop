@@ -1,11 +1,10 @@
 #pragma once
 
 #include <engine/Window.h>
-#include <engine/renderer/Pipeline.h>
-#include <engine/renderer/Device.h>
-#include <engine/renderer/Swapchain.h>
-#include <engine/renderer/Model.hpp>
 #include <engine/entity/Entity.h>
+#include <engine/renderer/Renderer.h>
+#include <engine/Scene.h>
+#include <engine/renderer/systems/Simple.h>
 #include <memory>
 #include <vector>
 
@@ -22,22 +21,11 @@ namespace Scop {
     void run();
   private:
     void loadEntities();
-    void createPipelineLayout();
-    void createPipeline();
-    void createCommandBuffers();
-    void freeCommandBuffers();
-    void drawFrame();
-    void recreateSwapchain();
-    void recordCommandBuffer(uint32_t imageIndex);
-    Entity createEntity(const std::string_view tag = "");
-    void renderEntities(VkCommandBuffer commandBuffer);
 
     Window window{ WINDOW_SIZE, "Scop" };
     Renderer::Device device{ window };
-    std::unique_ptr<Renderer::Swapchain> swapchain;
-    std::unique_ptr<Renderer::Pipeline> pipeline;
-    VkPipelineLayout pipelineLayout;
-    std::vector<VkCommandBuffer> commandBuffers;
-    entt::registry entityRegistry;
+    Renderer::Renderer renderer{ window, device };
+    Renderer::Systems::Simple simpleRenderSystem{ device, renderer.getSwapchainRenderPass() };
+    Scene scene;
   };
 }

@@ -1,6 +1,6 @@
 #include "engine/renderer/Pipeline.h"
 
-#include <engine/renderer/Model.hpp>
+#include <engine/renderer/Model.h>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
