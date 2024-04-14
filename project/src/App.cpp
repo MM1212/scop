@@ -1,19 +1,25 @@
 #include "App.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <array>
+#include <chrono>
+
+#include <engine/entity/components/Mesh.h>
 
 using Scop::App;
+using Scop::Entity;
 
 struct SimplePushConstantData {
+  glm::mat2 transform{ 1.0f };
   glm::vec2 offset;
   alignas(16) glm::vec3 color;
 };
 
 App::App() {
-  this->loadModels();
+  this->loadEntities();
   this->createPipelineLayout();
   this->recreateSwapchain();
   this->createCommandBuffers();
@@ -32,13 +38,38 @@ void App::run() {
   vkDeviceWaitIdle(this->device.getHandle());
 }
 
-void App::loadModels() {
+void App::loadEntities() {
   std::vector<Renderer::Model::Vertex> vertices{
     {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
     {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
   };
-  this->model = std::make_unique<Renderer::Model>(this->device, vertices);
+  auto model = std::make_shared<Renderer::Model>(this->device, vertices);
+
+  // auto triangle = this->createEntity("Triangle");
+  // triangle.addComponent<Components::Mesh>(model, glm::vec3{ .1f, .8f, .1f });
+  // auto& transform = triangle.transform();
+  // transform.translation.x = .2f;
+  // transform.scale = { 2.f, .5f };
+  // transform.rotation = glm::radians(90.f);
+
+  std::vector<glm::vec3> colors{
+    {1.f, .7f, .73f},
+    {1.f, .87f, .73f},
+    {1.f, 1.f, .73f},
+    {.73f, 1.f, .8f},
+    {.73, .88f, 1.f}
+  };
+  for (auto& color : colors) {
+    color = glm::pow(color, glm::vec3{ 2.2f });
+  }
+  for (int i = 0; i < 40; i++) {
+    auto triangle = this->createEntity("Triangle" + std::to_string(i));
+    triangle.addComponent<Components::Mesh>(model, colors[i % colors.size()]);
+    auto& transform = triangle.transform();
+    transform.scale = glm::vec2(.5f) + i * 0.025f;
+    transform.rotation = i * glm::pi<float>() * .025f;
+  }
 }
 
 void App::createPipelineLayout() {
@@ -119,9 +150,6 @@ void App::freeCommandBuffers() {
 }
 
 void App::recordCommandBuffer(uint32_t imageIndex) {
-  static uint32_t frame = 0;
-  frame = (frame + 1) % 1000;
-
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -157,27 +185,48 @@ void App::recordCommandBuffer(uint32_t imageIndex) {
   vkCmdSetScissor(this->commandBuffers[imageIndex], 0, 1, &scissor);
 
   this->pipeline->bind(this->commandBuffers[imageIndex]);
-  this->model->bind(this->commandBuffers[imageIndex]);
-  for (uint32_t i = 0; i < 4; i++) {
+  this->renderEntities(this->commandBuffers[imageIndex]);
+  vkCmdEndRenderPass(this->commandBuffers[imageIndex]);
+  if (vkEndCommandBuffer(this->commandBuffers[imageIndex]) != VK_SUCCESS)
+    throw std::runtime_error("Failed to record command buffer");
+}
+
+void App::renderEntities(VkCommandBuffer commandBuffer) {
+  auto view = this->entityRegistry.view<Components::Transform, Components::Mesh>();
+  uint32_t i = 0;
+  for (auto entity : view) {
+
+    auto [mesh, transform] = view.get<Components::Mesh, Components::Transform>(entity);
+
+    // transform.rotation = glm::mod(transform.rotation + 0.001f, glm::two_pi<float>());
+    // transform.scale.x = glm::abs(glm::sin(transform.rotation)) + 0.5f;
+    // transform.scale.y = transform.scale.x;
+    transform.rotation = glm::mod<float>(transform.rotation + 0.001f * (++i), 2.f * glm::pi<float>());
+
     SimplePushConstantData data;
-    data.offset = { -0.4f + frame * 0.002f, -0.4f + 0.2f * i };
-    data.color = { 1.0f, 0.1f * i, 0.1f * i };
+    data.transform = static_cast<glm::mat2>(transform);
+    data.offset = transform.translation;
+    data.color = mesh.color;
     vkCmdPushConstants(
-      this->commandBuffers[imageIndex],
+      commandBuffer,
       this->pipelineLayout,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0,
       sizeof(SimplePushConstantData),
       &data
     );
-    this->model->draw(this->commandBuffers[imageIndex]);
+    mesh.model->bind(commandBuffer);
+    mesh.model->draw(commandBuffer);
   }
-  vkCmdEndRenderPass(this->commandBuffers[imageIndex]);
-  if (vkEndCommandBuffer(this->commandBuffers[imageIndex]) != VK_SUCCESS)
-    throw std::runtime_error("Failed to record command buffer");
 }
 
 void App::drawFrame() {
+  static auto startTime = std::chrono::high_resolution_clock::now();
+
+  auto currentTime = std::chrono::high_resolution_clock::now();
+
+  float deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - startTime).count();
+  startTime = currentTime;
   uint32_t imageIndex;
   auto result = this->swapchain->acquireNextImage(&imageIndex);
   if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR && result != VK_ERROR_OUT_OF_DATE_KHR) {
@@ -201,4 +250,15 @@ void App::drawFrame() {
   else if (result != VK_SUCCESS) {
     throw std::runtime_error("Failed to submit command buffer");
   }
+}
+
+Entity App::createEntity(const std::string_view tag) {
+  Entity entity{ this->entityRegistry.create(), this->entityRegistry };
+  uint64_t id = Components::ID::NewRandomId();
+  if (tag.empty())
+    entity.addComponent<Components::ID>("Entity " + std::to_string(id), id);
+  else
+    entity.addComponent<Components::ID>(tag, id);
+  entity.addComponent<Components::Transform>();
+  return entity;
 }

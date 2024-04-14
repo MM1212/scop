@@ -5,7 +5,7 @@
 #include <engine/renderer/Device.h>
 #include <engine/renderer/Swapchain.h>
 #include <engine/renderer/Model.hpp>
-
+#include <engine/entity/Entity.h>
 #include <memory>
 #include <vector>
 
@@ -21,7 +21,7 @@ namespace Scop {
 
     void run();
   private:
-    void loadModels();
+    void loadEntities();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -29,6 +29,8 @@ namespace Scop {
     void drawFrame();
     void recreateSwapchain();
     void recordCommandBuffer(uint32_t imageIndex);
+    Entity createEntity(const std::string_view tag = "");
+    void renderEntities(VkCommandBuffer commandBuffer);
 
     Window window{ WINDOW_SIZE, "Scop" };
     Renderer::Device device{ window };
@@ -36,6 +38,6 @@ namespace Scop {
     std::unique_ptr<Renderer::Pipeline> pipeline;
     VkPipelineLayout pipelineLayout;
     std::vector<VkCommandBuffer> commandBuffers;
-    std::unique_ptr<Renderer::Model> model;
+    entt::registry entityRegistry;
   };
 }

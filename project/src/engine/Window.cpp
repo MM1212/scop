@@ -28,6 +28,7 @@ void Window::init() {
     throw std::runtime_error("Failed to initialize GLFW");
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwSwapInterval(1);
   this->handle = glfwCreateWindow(
     this->size.x, this->size.y,
     this->title.data(), nullptr, nullptr
