@@ -8,9 +8,9 @@
       "name": "(Linux) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/bin/debug-linux-x86_64/RayTracing/raytracing",
+      "program": "${workspaceFolder}/bin/debug-linux-x86_64/Scop/scop",
       "args": [],
-      "cwd": "${workspaceFolder}/bin/debug-linux-x86_64/RayTracing",
+      "cwd": "${workspaceFolder}",
       "stopAtEntry": false
     }
   ]

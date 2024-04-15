@@ -25,16 +25,16 @@ void Renderer::recreateSwapchain() {
   if (!this->swapchain)
     this->swapchain = std::make_unique<Swapchain>(this->device, extent);
   else {
-    this->swapchain = std::make_unique<Swapchain>(this->device, extent, std::move(this->swapchain));
-    if (this->swapchain->getImageCount() != this->commandBuffers.size()) {
-      this->freeCommandBuffers();
-      this->createCommandBuffers();
+    std::shared_ptr<Swapchain> oldSwapchain = std::move(this->swapchain);
+    this->swapchain = std::make_unique<Swapchain>(this->device, extent, oldSwapchain);
+    if (!oldSwapchain->compareSwapFormats(*this->swapchain)) {
+      throw std::runtime_error("Swapchain image or depth format has changed");
     }
   }
 }
 
 void Renderer::createCommandBuffers() {
-  this->commandBuffers.resize(this->swapchain->getImageCount());
+  this->commandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -94,6 +94,7 @@ void Renderer::endFrame() {
     throw std::runtime_error("Failed to submit command buffer");
   }
   this->isFrameStarted = false;
+  this->currentFrameIndex = (this->currentFrameIndex + 1) % Swapchain::MAX_FRAMES_IN_FLIGHT;
 }
 void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
   assert(this->isFrameStarted && "Cannot begin render pass when frame is not in progress.");

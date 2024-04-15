@@ -9,12 +9,12 @@ namespace Scop::Renderer {
   public:
     struct Vertex {
       glm::vec2 position;
-      glm::vec3 color;
+      // glm::vec3 color;
 
       static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
       static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
     };
-    Model(Renderer::Device& device, const std::vector<Vertex>& vertices);
+    Model(Device& device, const std::vector<Vertex>& vertices);
     ~Model();
 
     Model(const Model&) = delete;
@@ -25,7 +25,7 @@ namespace Scop::Renderer {
   private:
     void createVertexBuffer(const std::vector<Vertex>& vertices);
   
-    Renderer::Device& device;
+    Device& device;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     uint32_t vertexCount;

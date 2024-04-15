@@ -57,13 +57,9 @@ void Simple::createPipeline(VkRenderPass renderPass) {
 
 void Simple::renderScene(VkCommandBuffer commandBuffer, Scene& scene) {
   this->pipeline->bind(commandBuffer);
-  auto group = scene.groupEntitiesWith<Components::Mesh, Components::Transform>();
-  uint32_t i = 0;
+  auto group = scene.viewEntitiesWith<Components::Mesh, Components::Transform>();
   for (auto entity : group) {
     auto [mesh, transform] = group.get<Components::Mesh, Components::Transform>(entity);
-
-    transform.rotation = glm::mod<float>(transform.rotation + 0.001f * (++i), 2.f * glm::pi<float>());
-
     SimplePushConstantData data;
     data.transform = static_cast<glm::mat2>(transform);
     data.offset = transform.translation;

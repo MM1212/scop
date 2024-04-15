@@ -40,6 +40,10 @@ namespace Scop::Renderer {
     VkResult acquireNextImage(uint32_t* imageIndex);
     VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
+    bool compareSwapFormats(const Swapchain& swapchain) const {
+      return this->swapChainImageFormat == swapchain.swapChainImageFormat &&
+        this->swapChainDepthFormat == swapchain.swapChainDepthFormat;
+    }
   private:
     void init();
     void createSwapChain();
@@ -57,6 +61,7 @@ namespace Scop::Renderer {
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
     VkFormat swapChainImageFormat;
+    VkFormat swapChainDepthFormat;
     VkExtent2D swapChainExtent;
 
     std::vector<VkFramebuffer> swapChainFramebuffers;

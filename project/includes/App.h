@@ -25,7 +25,6 @@ namespace Scop {
     Window window{ WINDOW_SIZE, "Scop" };
     Renderer::Device device{ window };
     Renderer::Renderer renderer{ window, device };
-    Renderer::Systems::Simple simpleRenderSystem{ device, renderer.getSwapchainRenderPass() };
     Scene scene;
   };
 }

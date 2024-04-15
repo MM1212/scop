@@ -11,7 +11,6 @@ namespace Scop {
   class Entity {
   public:
     using ID = entt::entity;
-    Entity() = default;
     Entity(const Entity&) = default;
     Entity& operator=(const Entity&) = default;
     Entity(ID handle, entt::registry& reg) : handle(handle), registry{reg} {}

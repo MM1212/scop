@@ -20,7 +20,11 @@ namespace Scop::Renderer {
     bool isFrameInProgress() const { return this->isFrameStarted; }
     VkCommandBuffer getCurrentCommandBuffer() const {
       assert(this->isFrameStarted && "Cannot get command buffer when frame not in progress.");
-      return this->commandBuffers[currentImageIndex];
+      return this->commandBuffers[this->currentFrameIndex];
+    }
+    uint32_t getFrameIndex() const {
+      assert(this->isFrameStarted && "Cannot get frame index when frame not in progress.");
+      return this->currentFrameIndex;
     }
 
     VkCommandBuffer beginFrame();
@@ -37,6 +41,7 @@ namespace Scop::Renderer {
     std::unique_ptr<Swapchain> swapchain;
     std::vector<VkCommandBuffer> commandBuffers;
     uint32_t currentImageIndex = 0;
+    uint32_t currentFrameIndex = 0;
     bool isFrameStarted = false;
   };
 }

@@ -81,7 +81,8 @@
       "streambuf": "cpp",
       "cinttypes": "cpp",
       "typeinfo": "cpp",
-      "fstream": "cpp"
+      "fstream": "cpp",
+      "any": "cpp"
     }
   }
 }
