@@ -25,7 +25,8 @@ project "Scop"
     "includes",
     vendorFiles("glfw/include")(),
     vendorFiles("glm")(),
-    vendorFiles("entt/src")()
+    vendorFiles("entt/src")(),
+    vendorFiles("tinyobjloader")()
   }
 
   links {

@@ -6,7 +6,8 @@
         "${workspaceFolder}/project/includes",
         "${workspaceFolder}/vendor/glfw/include",
         "${workspaceFolder}/vendor/glm",
-        "${workspaceFolder}/vendor/entt/src"
+        "${workspaceFolder}/vendor/entt/src",
+        "${workspaceFolder}/vendor/tinyobjloader",
       ],
       "defines": [
         "GLFW_INCLUDE_VULKAN",
