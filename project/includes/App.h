@@ -5,6 +5,7 @@
 #include <engine/renderer/Renderer.h>
 #include <engine/scene/Scene.h>
 #include <engine/renderer/systems/Simple.h>
+#include <engine/renderer/Descriptors.h>
 #include <memory>
 #include <vector>
 
@@ -33,6 +34,8 @@ namespace Scop {
     Window window{ WINDOW_SIZE, "Scop" };
     Renderer::Device device{ window };
     Renderer::Renderer renderer{ window, device };
+    std::unique_ptr<Renderer::DescriptorPool> globalDescriptorPool = nullptr;
+
     SceneCamera sceneCamera{};
     Scene scene;
   private:

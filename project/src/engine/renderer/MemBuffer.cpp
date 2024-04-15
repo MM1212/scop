@@ -138,7 +138,7 @@ VkResult MemBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset) {
  *
  * @return VkDescriptorBufferInfo of specified offset and range
  */
-VkDescriptorBufferInfo MemBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) const {
+VkDescriptorBufferInfo MemBuffer::getDescriptorInfo(VkDeviceSize size, VkDeviceSize offset) const {
   return VkDescriptorBufferInfo{
       buffer,
       offset,
@@ -173,7 +173,7 @@ VkResult MemBuffer::flushIndex(uint32_t index) { return flush(alignmentSize, ind
  * @return VkDescriptorBufferInfo for instance at index
  */
 VkDescriptorBufferInfo MemBuffer::descriptorInfoForIndex(uint32_t index) const {
-  return descriptorInfo(alignmentSize, index * alignmentSize);
+  return getDescriptorInfo(alignmentSize, index * alignmentSize);
 }
 
 /**

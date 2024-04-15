@@ -46,12 +46,14 @@ void SceneCamera::computeProjection() {
     this->projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, this->orthographicNearClip, this->orthographicFarClip);
     break;
   };
+  this->projectionViewMatrix = this->projection * this->viewMatrix;
 }
 
 void SceneCamera::setViewDirection(glm::vec3 position, glm::vec3 direction, glm::vec3 up) {
   this->viewMatrix = glm::lookAt(position, position + direction, up);
   this->transform.translation = position;
   this->transform.rotation = glm::vec3{ glm::asin(-this->viewMatrix[2][1]), glm::atan(this->viewMatrix[1][0], this->viewMatrix[0][0]), 0.f };
+  this->projectionViewMatrix = this->projection * this->viewMatrix;
 }
 void SceneCamera::setViewTarget(glm::vec3 position, glm::vec3 target, glm::vec3 up) {
   this->setViewDirection(position, target - position, up);
@@ -81,6 +83,7 @@ void SceneCamera::setViewYXZ(glm::vec3 position, glm::vec3 rotation) {
   viewMatrix[3][0] = -glm::dot(u, position);
   viewMatrix[3][1] = -glm::dot(v, position);
   viewMatrix[3][2] = -glm::dot(w, position);
+  this->projectionViewMatrix = this->projection * this->viewMatrix;
 }
 
 void SceneCamera::update(float deltaTime) {

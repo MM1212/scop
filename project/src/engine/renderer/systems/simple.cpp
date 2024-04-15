@@ -7,13 +7,13 @@
 using Scop::Renderer::Systems::Simple;
 
 struct SimplePushConstantData {
-  glm::mat4 transform{ 1.0f };
+  glm::mat4 modelMatrix{ 1.0f };
   glm::mat4 normalMatrix{ 1.0f };
 };
 
-Simple::Simple(Device& device, VkRenderPass renderPass)
+Simple::Simple(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalDescriptorSetLayout)
   : device(device) {
-  this->createPipelineLayout();
+  this->createPipelineLayout(globalDescriptorSetLayout);
   this->createPipeline(renderPass);
 }
 
@@ -21,16 +21,18 @@ Simple::~Simple() {
   vkDestroyPipelineLayout(this->device.getHandle(), this->pipelineLayout, nullptr);
 }
 
-void Simple::createPipelineLayout() {
+void Simple::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
   VkPushConstantRange pushConstantRange{};
   pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   pushConstantRange.offset = 0;
   pushConstantRange.size = sizeof(SimplePushConstantData);
 
+  std::vector<VkDescriptorSetLayout> layouts = { globalDescriptorSetLayout };
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 0;
-  pipelineLayoutInfo.pSetLayouts = nullptr;
+  pipelineLayoutInfo.setLayoutCount = layouts.size();
+  pipelineLayoutInfo.pSetLayouts = layouts.data();
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
@@ -54,28 +56,34 @@ void Simple::createPipeline(VkRenderPass renderPass) {
   );
 }
 
-void Simple::renderScene(VkCommandBuffer commandBuffer, Scene& scene, const SceneCamera& sceneCamera) {
-  this->pipeline->bind(commandBuffer);
+void Simple::renderScene(const FrameInfo& frameInfo, Scene& scene) {
+  this->pipeline->bind(frameInfo.commandBuffer);
+
+  vkCmdBindDescriptorSets(
+    frameInfo.commandBuffer,
+    VK_PIPELINE_BIND_POINT_GRAPHICS,
+    this->pipelineLayout,
+    0, 1, &frameInfo.globalDescriptorSet,
+    0, nullptr
+  );
+
   auto group = scene.viewEntitiesWith<Components::Mesh, Components::Transform>();
-
-  auto projectionView = sceneCamera.getProjection() * sceneCamera.getView();
-
   for (auto entity : group) {
     auto [mesh, transform] = group.get<Components::Mesh, Components::Transform>(entity);
     SimplePushConstantData data;
     auto modelMatrix = static_cast<glm::mat4>(transform);
-    data.transform = projectionView * modelMatrix;
+    data.modelMatrix =  modelMatrix;
     data.normalMatrix = transform.computeNormalMatrix();
 
     vkCmdPushConstants(
-      commandBuffer,
+      frameInfo.commandBuffer,
       this->pipelineLayout,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0,
       sizeof(SimplePushConstantData),
       &data
     );
-    mesh.model->bind(commandBuffer);
-    mesh.model->draw(commandBuffer);
+    mesh.model->bind(frameInfo.commandBuffer);
+    mesh.model->draw(frameInfo.commandBuffer);
   }
 }
