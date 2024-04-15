@@ -26,10 +26,9 @@ namespace Scop {
     const Scene& getActiveScene() const { return this->scene; }
     SceneCamera& getSceneCamera() { return this->sceneCamera; }
     const SceneCamera& getSceneCamera() const { return this->sceneCamera; }
-
     static App& Get() { return *instance; }
+    void loadEntities(const std::vector<std::string_view>& modelPaths);
   private:
-    void loadEntities();
 
     Window window{ WINDOW_SIZE, "Scop" };
     Renderer::Device device{ window };

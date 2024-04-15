@@ -68,7 +68,7 @@ namespace Scop {
 
     glm::mat4 viewMatrix{ 1.0f };
     Components::Transform transform{};
-    float lookSpeed = 1.f;
-    float moveSpeed = 1.f;
+    float lookSpeed = 3.f;
+    float moveSpeed = 1.5f;
   };
 }

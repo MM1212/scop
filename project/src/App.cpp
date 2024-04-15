@@ -17,7 +17,6 @@ App* App::instance = nullptr;
 
 App::App() {
   App::instance = this;
-  this->loadEntities();
 }
 App::~App() {}
 
@@ -48,62 +47,15 @@ void App::run() {
   vkDeviceWaitIdle(this->device.getHandle());
 }
 
-static std::unique_ptr<Renderer::Model> CreateCubeModel(Renderer::Device& device, glm::vec3 offset) {
-  Renderer::Model::Builder modelBuilder{};
-  modelBuilder.vertices = {
-
-    // left face (white)
-      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-      {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-
-      // right face (yellow)
-      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-      {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-
-      // top face (orange, remember y axis points down)
-      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-      {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-
-      // bottom face (red)
-      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-      {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-
-      // nose face (blue)
-      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-      {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-
-      // tail face (green)
-      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-      {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-
-  };
-  for (auto& v : modelBuilder.vertices) {
-    v.position += offset;
+void App::loadEntities(const std::vector<std::string_view>& modelPaths) {
+  uint32_t i = 0;
+  for (const auto path : modelPaths) {
+    std::shared_ptr<Renderer::Model> cubeModel = Renderer::Model::CreateFromFile(this->device, path);
+    auto entity = this->scene.createEntity("Cube");
+    entity.addComponent<Components::Mesh>(cubeModel);
+    auto& transform = entity.transform();
+    transform.translation = { 0.f, 0.f, -2.5f + 2.f * i++};
+    transform.scale = { 3.f, 1.5f, 3.f };
   }
-
-  modelBuilder.indices = { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-                          12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
-  return std::make_unique<Renderer::Model>(device, modelBuilder);
-}
-
-void App::loadEntities() {
-  std::shared_ptr<Renderer::Model> cubeModel = CreateCubeModel(this->device, { 0.f, 0.f, 0.f });
-  auto cube = this->scene.createEntity("Cube");
-  cube.addComponent<Components::Mesh>(cubeModel);
-  auto& transform = cube.transform();
-  transform.translation = { 0.f, 0.f, -2.5f };
-  transform.scale = { .5f, .5f, .5f };
 }
 

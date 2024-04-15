@@ -8,7 +8,7 @@ using Scop::Renderer::Systems::Simple;
 
 struct SimplePushConstantData {
   glm::mat4 transform{ 1.0f };
-  alignas(16) glm::vec3 color;
+  glm::mat4 normalMatrix{ 1.0f };
 };
 
 Simple::Simple(Device& device, VkRenderPass renderPass)
@@ -63,8 +63,9 @@ void Simple::renderScene(VkCommandBuffer commandBuffer, Scene& scene, const Scen
   for (auto entity : group) {
     auto [mesh, transform] = group.get<Components::Mesh, Components::Transform>(entity);
     SimplePushConstantData data;
-    data.transform = projectionView * static_cast<glm::mat4>(transform);
-    data.color = mesh.color;
+    auto modelMatrix = static_cast<glm::mat4>(transform);
+    data.transform = projectionView * modelMatrix;
+    data.normalMatrix = transform.computeNormalMatrix();
 
     vkCmdPushConstants(
       commandBuffer,

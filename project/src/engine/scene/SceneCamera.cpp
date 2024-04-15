@@ -51,7 +51,7 @@ void SceneCamera::computeProjection() {
 void SceneCamera::setViewDirection(glm::vec3 position, glm::vec3 direction, glm::vec3 up) {
   this->viewMatrix = glm::lookAt(position, position + direction, up);
   this->transform.translation = position;
-  this->transform.rotation = glm::vec3{glm::asin(-this->viewMatrix[2][1]), glm::atan(this->viewMatrix[1][0], this->viewMatrix[0][0]), 0.f};
+  this->transform.rotation = glm::vec3{ glm::asin(-this->viewMatrix[2][1]), glm::atan(this->viewMatrix[1][0], this->viewMatrix[0][0]), 0.f };
 }
 void SceneCamera::setViewTarget(glm::vec3 position, glm::vec3 target, glm::vec3 up) {
   this->setViewDirection(position, target - position, up);
@@ -84,8 +84,10 @@ void SceneCamera::setViewYXZ(glm::vec3 position, glm::vec3 rotation) {
 }
 
 void SceneCamera::update(float deltaTime) {
+  float lookSpeed = this->lookSpeed;
+  float moveSpeed = this->moveSpeed;
   bool changed = false;
-  glm::vec3 rotate{0};
+  glm::vec3 rotate{ 0 };
 
   if (Input::IsKeyPressed(Input::Key::Right))
     rotate.y -= 1.f;
@@ -96,21 +98,27 @@ void SceneCamera::update(float deltaTime) {
   if (Input::IsKeyPressed(Input::Key::Down))
     rotate.x += 1.f;
 
-
+  if (Input::IsKeyPressed(Input::Key::LeftShift)) {
+    moveSpeed *= 2.f;
+  }
+  else if (Input::IsKeyPressed(Input::Key::LeftControl)) {
+    moveSpeed *= 0.5f;
+  }
   if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon()) {
-    this->transform.rotation += glm::normalize(rotate) * (this->lookSpeed * deltaTime);
+    this->transform.rotation += glm::normalize(rotate) * (lookSpeed * deltaTime);
     changed = true;
   }
-  
+
   this->transform.rotation.x = glm::clamp(this->transform.rotation.x, -glm::half_pi<float>(), glm::half_pi<float>());
   this->transform.rotation.y = glm::mod(this->transform.rotation.y, glm::two_pi<float>());
 
   float yaw = this->transform.rotation.y;
-  const glm::vec3 forwardDir{glm::sin(yaw), 0.f, glm::cos(yaw)};
-  const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
-  constexpr glm::vec3 upDir{0.f, -1.f, 0.f};
+  float pitch = this->transform.rotation.x;
+  const glm::vec3 forwardDir = glm::normalize(glm::vec3{ glm::cos(pitch) * glm::sin(yaw), -glm::sin(pitch), glm::cos(pitch) * glm::cos(yaw) });
+  const glm::vec3 rightDir = glm::normalize(glm::cross(forwardDir, glm::vec3{ 0.f, -1.f, 0.f }));
+  constexpr glm::vec3 upDir{ 0.f, -1.f, 0.f };
 
-  glm::vec3 move{0};
+  glm::vec3 move{ 0 };
   if (Input::IsKeyPressed(Input::Key::W))
     move -= forwardDir;
   if (Input::IsKeyPressed(Input::Key::S))
@@ -120,17 +128,19 @@ void SceneCamera::update(float deltaTime) {
   if (Input::IsKeyPressed(Input::Key::A))
     move -= rightDir;
   if (Input::IsKeyPressed(Input::Key::Q))
-    move += upDir;
-  if (Input::IsKeyPressed(Input::Key::E))
     move -= upDir;
-  
+  if (Input::IsKeyPressed(Input::Key::E))
+    move += upDir;
+
   if (glm::dot(move, move) > std::numeric_limits<float>::epsilon()) {
-    this->transform.translation += glm::normalize(move) * (this->moveSpeed * deltaTime);
+    this->transform.translation += glm::normalize(move) * (moveSpeed * deltaTime);
     changed = true;
   }
   if (changed) {
-    std::cout << "Camera position: " << this->transform.translation.x << " " << this->transform.translation.y << " " << this->transform.translation.z << std::endl;
-    std::cout << "Camera rotation: " << this->transform.rotation.x << " " << this->transform.rotation.y << " " << this->transform.rotation.z << std::endl;
+    std::cout << "forward dir: " << forwardDir.x << " " << forwardDir.y << " " << forwardDir.z << std::endl;
+    std::cout << "right dir: " << rightDir.x << " " << rightDir.y << " " << rightDir.z << std::endl;
+    // std::cout << "Camera position: " << this->transform.translation.x << " " << this->transform.translation.y << " " << this->transform.translation.z << std::endl;
+    // std::cout << "Camera rotation: " << this->transform.rotation.x << " " << this->transform.rotation.y << " " << this->transform.rotation.z << std::endl;
     this->setViewYXZ(this->transform.translation, this->transform.rotation);
   }
 }

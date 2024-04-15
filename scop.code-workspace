@@ -15,7 +15,7 @@
       "**/Thumbs.db": true,
       "**/*.o": true,
       "**/*.d": true,
-      "vendor/**/*": true
+      // "vendor/**/*": true
     },
     "files.associations": {
       ".env.production": "dotenv",
