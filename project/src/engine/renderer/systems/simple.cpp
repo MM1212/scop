@@ -7,8 +7,7 @@
 using Scop::Renderer::Systems::Simple;
 
 struct SimplePushConstantData {
-  glm::mat2 transform{ 1.0f };
-  glm::vec2 offset;
+  glm::mat4 transform{ 1.0f };
   alignas(16) glm::vec3 color;
 };
 
@@ -60,10 +59,13 @@ void Simple::renderScene(VkCommandBuffer commandBuffer, Scene& scene) {
   auto group = scene.viewEntitiesWith<Components::Mesh, Components::Transform>();
   for (auto entity : group) {
     auto [mesh, transform] = group.get<Components::Mesh, Components::Transform>(entity);
+    transform.rotation.y = glm::mod(transform.rotation.y + 0.0005f, glm::two_pi<float>());
+    transform.rotation.x = glm::mod(transform.rotation.x + 0.001f, glm::two_pi<float>());
+
     SimplePushConstantData data;
-    data.transform = static_cast<glm::mat2>(transform);
-    data.offset = transform.translation;
+    data.transform = static_cast<glm::mat4>(transform);
     data.color = mesh.color;
+
     vkCmdPushConstants(
       commandBuffer,
       this->pipelineLayout,
