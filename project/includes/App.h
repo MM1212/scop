@@ -8,8 +8,6 @@
 #include <memory>
 #include <vector>
 
-int main(int argc, char** argv);
-
 namespace Scop {
   class App {
   public:
@@ -40,6 +38,5 @@ namespace Scop {
     Scene scene;
   private:
     static App* instance;
-    friend int ::main(int argc, char** argv);
   };
 }

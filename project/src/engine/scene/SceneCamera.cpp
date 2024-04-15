@@ -1,11 +1,15 @@
 #include "engine/scene/SceneCamera.h"
+#include <engine/input/Input.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <limits>
+#include <iostream>
 
 using Scop::SceneCamera;
 
 SceneCamera::SceneCamera() {
   this->computeProjection();
+  this->setViewYXZ(this->transform.translation, this->transform.rotation);
 }
 
 void SceneCamera::setPerspective(float fov, float nearClip, float farClip) {
@@ -46,11 +50,15 @@ void SceneCamera::computeProjection() {
 
 void SceneCamera::setViewDirection(glm::vec3 position, glm::vec3 direction, glm::vec3 up) {
   this->viewMatrix = glm::lookAt(position, position + direction, up);
+  this->transform.translation = position;
+  this->transform.rotation = glm::vec3{glm::asin(-this->viewMatrix[2][1]), glm::atan(this->viewMatrix[1][0], this->viewMatrix[0][0]), 0.f};
 }
 void SceneCamera::setViewTarget(glm::vec3 position, glm::vec3 target, glm::vec3 up) {
   this->setViewDirection(position, target - position, up);
 }
 void SceneCamera::setViewYXZ(glm::vec3 position, glm::vec3 rotation) {
+  this->transform.translation = position;
+  this->transform.rotation = rotation;
   const float c3 = glm::cos(rotation.z);
   const float s3 = glm::sin(rotation.z);
   const float c2 = glm::cos(rotation.x);
@@ -73,4 +81,56 @@ void SceneCamera::setViewYXZ(glm::vec3 position, glm::vec3 rotation) {
   viewMatrix[3][0] = -glm::dot(u, position);
   viewMatrix[3][1] = -glm::dot(v, position);
   viewMatrix[3][2] = -glm::dot(w, position);
+}
+
+void SceneCamera::update(float deltaTime) {
+  bool changed = false;
+  glm::vec3 rotate{0};
+
+  if (Input::IsKeyPressed(Input::Key::Right))
+    rotate.y -= 1.f;
+  if (Input::IsKeyPressed(Input::Key::Left))
+    rotate.y += 1.f;
+  if (Input::IsKeyPressed(Input::Key::Up))
+    rotate.x -= 1.f;
+  if (Input::IsKeyPressed(Input::Key::Down))
+    rotate.x += 1.f;
+
+
+  if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon()) {
+    this->transform.rotation += glm::normalize(rotate) * (this->lookSpeed * deltaTime);
+    changed = true;
+  }
+  
+  this->transform.rotation.x = glm::clamp(this->transform.rotation.x, -glm::half_pi<float>(), glm::half_pi<float>());
+  this->transform.rotation.y = glm::mod(this->transform.rotation.y, glm::two_pi<float>());
+
+  float yaw = this->transform.rotation.y;
+  const glm::vec3 forwardDir{glm::sin(yaw), 0.f, glm::cos(yaw)};
+  const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
+  constexpr glm::vec3 upDir{0.f, -1.f, 0.f};
+
+  glm::vec3 move{0};
+  if (Input::IsKeyPressed(Input::Key::W))
+    move -= forwardDir;
+  if (Input::IsKeyPressed(Input::Key::S))
+    move += forwardDir;
+  if (Input::IsKeyPressed(Input::Key::D))
+    move += rightDir;
+  if (Input::IsKeyPressed(Input::Key::A))
+    move -= rightDir;
+  if (Input::IsKeyPressed(Input::Key::Q))
+    move += upDir;
+  if (Input::IsKeyPressed(Input::Key::E))
+    move -= upDir;
+  
+  if (glm::dot(move, move) > std::numeric_limits<float>::epsilon()) {
+    this->transform.translation += glm::normalize(move) * (this->moveSpeed * deltaTime);
+    changed = true;
+  }
+  if (changed) {
+    std::cout << "Camera position: " << this->transform.translation.x << " " << this->transform.translation.y << " " << this->transform.translation.z << std::endl;
+    std::cout << "Camera rotation: " << this->transform.rotation.x << " " << this->transform.rotation.y << " " << this->transform.rotation.z << std::endl;
+    this->setViewYXZ(this->transform.translation, this->transform.rotation);
+  }
 }

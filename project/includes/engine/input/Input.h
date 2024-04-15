@@ -20,6 +20,7 @@ namespace Scop::Input {
   glm::vec2 GetMousePosition();
   float GetMouseX();
   float GetMouseY();
+  glm::vec2 GetMouseDelta();
   void SetMouseMode(MouseMode mode);
   MouseMode GetMouseMode();
   void SetMousePosition(const glm::vec2& position);

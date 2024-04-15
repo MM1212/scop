@@ -48,6 +48,14 @@ namespace Scop::Input {
   float GetMouseY() {
     return GetMousePosition().y;
   }
+
+  glm::vec2 GetMouseDelta() {
+    static glm::vec2 lastMousePosition = GetMousePosition();
+    auto mousePosition = GetMousePosition();
+    auto delta = mousePosition - lastMousePosition;
+    lastMousePosition = mousePosition;
+    return delta;
+  }
   void SetMouseMode(MouseMode mode) {
     auto* window = GetWindow();
     glfwSetInputMode(window, GLFW_CURSOR, static_cast<int>(mode));

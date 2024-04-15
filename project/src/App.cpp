@@ -9,6 +9,7 @@
 
 #include <engine/scene/components/Mesh.h>
 #include <engine/scene/components/RigidBody2D.h>
+#include <engine/input/Input.h>
 
 using namespace Scop;
 
@@ -24,16 +25,16 @@ void App::run() {
   Renderer::Systems::Simple simpleRenderSystem{ this->device, this->renderer.getSwapchainRenderPass() };
 
   this->sceneCamera.setPerspective(glm::radians(50.f), .1f, 10.f);
-  this->sceneCamera.setViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
 
   auto currentTime = std::chrono::high_resolution_clock::now();
+  Input::SetMouseMode(Input::MouseMode::Hidden);
   while (!this->window.shouldClose()) {
     this->window.pollEvents();
     this->sceneCamera.setAspectRatio(this->renderer.getSwapchainExtentAspectRatio());
     auto newTime = std::chrono::high_resolution_clock::now();
     float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
     currentTime = newTime;
-
+    this->sceneCamera.update(deltaTime);
     auto cmdBuffer = this->renderer.beginFrame();
     if (!cmdBuffer)
       continue;
