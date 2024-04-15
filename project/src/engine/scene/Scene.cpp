@@ -1,0 +1,29 @@
+#include "engine/scene/Scene.h"
+#include <engine/scene/Entity.h>
+
+using Scop::Scene;
+using Scop::Entity;
+
+Entity Scene::createEntity(const std::string_view tag) {
+  Entity entity{ this->registry.create(), this };
+  Entity::UUID uuid = Components::ID::GenerateId();
+  if (tag.empty())
+    entity.addComponent<Components::ID>("Entity " + std::to_string(uuid), uuid);
+  else
+    entity.addComponent<Components::ID>(tag, uuid);
+  entity.addComponent<Components::Transform>();
+  this->entityMap[uuid] = entity.getHandle();
+  return entity;
+}
+void Scene::destroyEntity(Entity entity) {
+  this->registry.destroy(entity);
+  this->entityMap.erase(entity.getUniqId());
+}
+
+bool Scene::entityExists(entt::entity id) const {
+  return this->registry.valid(id);
+}
+
+bool Scene::entityExists(uint64_t uuid) const {
+  return this->entityMap.find(uuid) != this->entityMap.end();
+}

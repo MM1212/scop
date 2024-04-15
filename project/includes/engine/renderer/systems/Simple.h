@@ -4,7 +4,7 @@
 #include <engine/renderer/Renderer.h>
 #include <engine/renderer/Pipeline.h>
 #include <memory>
-#include <engine/Scene.h>
+#include <engine/scene/Scene.h>
 
 namespace Scop::Renderer::Systems {
   class Simple {
@@ -14,7 +14,7 @@ namespace Scop::Renderer::Systems {
     Simple(const Simple&) = delete;
     Simple& operator=(const Simple&) = delete;
 
-    void renderScene(VkCommandBuffer commandBuffer, Scene& scene);
+    void renderScene(VkCommandBuffer commandBuffer, Scene& scene, const SceneCamera& sceneCamera);
   private:
     void createPipelineLayout();
     void createPipeline(VkRenderPass renderPass);

@@ -7,29 +7,39 @@
 #include <array>
 #include <chrono>
 
-#include <engine/entity/components/Mesh.h>
-#include <engine/entity/components/RigidBody2D.h>
+#include <engine/scene/components/Mesh.h>
+#include <engine/scene/components/RigidBody2D.h>
 
 using namespace Scop;
 
-
+App* App::instance = nullptr;
 
 App::App() {
+  App::instance = this;
   this->loadEntities();
 }
-
 App::~App() {}
 
 void App::run() {
   Renderer::Systems::Simple simpleRenderSystem{ this->device, this->renderer.getSwapchainRenderPass() };
+
+  this->sceneCamera.setPerspective(glm::radians(50.f), .1f, 10.f);
+  this->sceneCamera.setViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
+
+  auto currentTime = std::chrono::high_resolution_clock::now();
   while (!this->window.shouldClose()) {
     this->window.pollEvents();
+    this->sceneCamera.setAspectRatio(this->renderer.getSwapchainExtentAspectRatio());
+    auto newTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+    currentTime = newTime;
+
     auto cmdBuffer = this->renderer.beginFrame();
     if (!cmdBuffer)
       continue;
     // render
     this->renderer.beginSwapchainRenderPass(cmdBuffer);
-    simpleRenderSystem.renderScene(cmdBuffer, this->scene);
+    simpleRenderSystem.renderScene(cmdBuffer, this->scene, this->sceneCamera);
     this->renderer.endSwapchainRenderPass(cmdBuffer);
     this->renderer.endFrame();
     vkDeviceWaitIdle(this->device.getHandle());
@@ -100,7 +110,7 @@ void App::loadEntities() {
   auto cube = this->scene.createEntity("Cube");
   cube.addComponent<Components::Mesh>(cubeModel);
   auto& transform = cube.transform();
-  transform.translation = { 0.f, 0.f, .5f };
+  transform.translation = { 0.f, 0.f, 2.5f };
   transform.scale = { .5f, .5f, .5f };
 }
 

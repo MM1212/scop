@@ -14,6 +14,9 @@ namespace Scop::Components {
     bool operator!=(const ID& other) const {
       return this->id != other.id;
     }
+    explicit operator uint64_t() const {
+      return this->id;
+    }
 
     ID() = default;
     ID(const ID&) = default;

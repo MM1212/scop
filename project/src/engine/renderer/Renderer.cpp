@@ -104,7 +104,7 @@ void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
   renderPassInfo.renderPass = this->swapchain->getRenderPass();
   renderPassInfo.framebuffer = this->swapchain->getFrameBuffer(this->currentImageIndex);
   renderPassInfo.renderArea.offset = { 0, 0 };
-  renderPassInfo.renderArea.extent = this->swapchain->getSwapChainExtent();
+  renderPassInfo.renderArea.extent = this->swapchain->getExtent();
 
   std::array<VkClearValue, 2> clearValues{};
   clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
@@ -116,11 +116,11 @@ void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
   VkViewport viewport{};
-  VkRect2D scissor{ {0,0}, this->swapchain->getSwapChainExtent() };
+  VkRect2D scissor{ {0,0}, this->swapchain->getExtent() };
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = this->swapchain->getSwapChainExtent().width;
-  viewport.height = this->swapchain->getSwapChainExtent().height;
+  viewport.width = this->swapchain->getExtent().width;
+  viewport.height = this->swapchain->getExtent().height;
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 

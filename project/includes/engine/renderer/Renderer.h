@@ -17,6 +17,8 @@ namespace Scop::Renderer {
     Renderer& operator=(const Renderer&) = delete;
 
     VkRenderPass getSwapchainRenderPass() const { return this->swapchain->getRenderPass(); }
+    VkExtent2D getSwapchainExtent() const { return this->swapchain->getExtent(); }
+    float getSwapchainExtentAspectRatio() const { return this->swapchain->extentAspectRatio(); }
     bool isFrameInProgress() const { return this->isFrameStarted; }
     VkCommandBuffer getCurrentCommandBuffer() const {
       assert(this->isFrameStarted && "Cannot get command buffer when frame not in progress.");

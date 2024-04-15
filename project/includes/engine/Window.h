@@ -14,6 +14,7 @@ namespace Scop {
     Window& operator=(const Window&) = delete;
 
     const GLFWwindow* getHandle() const { return this->handle; }
+    GLFWwindow* getHandle() { return this->handle; }
     const glm::uvec2& getSize() const { return this->size; }
     VkExtent2D getExtent() const { return { this->size.x, this->size.y }; }
     uint32_t getWidth() const { return this->size.x; }

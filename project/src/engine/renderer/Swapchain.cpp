@@ -228,7 +228,7 @@ void Swapchain::createRenderPass() {
   depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
   VkAttachmentDescription colorAttachment = {};
-  colorAttachment.format = getSwapChainImageFormat();
+  colorAttachment.format = getImageFormat();
   colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
   colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
   colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -278,7 +278,7 @@ void Swapchain::createFramebuffers() {
   for (size_t i = 0; i < getImageCount(); i++) {
     std::array<VkImageView, 2> attachments = { swapChainImageViews[i], depthImageViews[i] };
 
-    VkExtent2D swapChainExtent = getSwapChainExtent();
+    VkExtent2D swapChainExtent = getExtent();
     VkFramebufferCreateInfo framebufferInfo = {};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferInfo.renderPass = renderPass;
@@ -301,7 +301,7 @@ void Swapchain::createFramebuffers() {
 void Swapchain::createDepthResources() {
   VkFormat depthFormat = findDepthFormat();
   this->swapChainDepthFormat = depthFormat;
-  VkExtent2D swapChainExtent = getSwapChainExtent();
+  VkExtent2D swapChainExtent = getExtent();
 
   depthImages.resize(getImageCount());
   depthImageMemorys.resize(getImageCount());

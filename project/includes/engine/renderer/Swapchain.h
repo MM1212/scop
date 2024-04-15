@@ -23,14 +23,15 @@ namespace Scop::Renderer {
     Swapchain(const Swapchain&) = delete;
     void operator=(const Swapchain&) = delete;
 
-    VkFramebuffer getFrameBuffer(int index) const { return swapChainFramebuffers[index]; }
-    VkRenderPass getRenderPass() const { return renderPass; }
-    VkImageView getImageView(int index) const { return swapChainImageViews[index]; }
-    size_t getImageCount() const { return swapChainImages.size(); }
-    VkFormat getSwapChainImageFormat() const { return swapChainImageFormat; }
-    VkExtent2D getSwapChainExtent() const { return swapChainExtent; }
-    uint32_t width() const { return swapChainExtent.width; }
-    uint32_t height() const { return swapChainExtent.height; }
+    VkFramebuffer getFrameBuffer(int index) const { return this->swapChainFramebuffers[index]; }
+    VkRenderPass getRenderPass() const { return this->renderPass; }
+    VkImageView getImageView(int index) const { return this->swapChainImageViews[index]; }
+    size_t getImageCount() const { return this->swapChainImages.size(); }
+    VkFormat getImageFormat() const { return this->swapChainImageFormat; }
+    VkExtent2D getExtent() const { return this->swapChainExtent; }
+    float getAspectRation() const { return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height); }
+    uint32_t width() const { return this->swapChainExtent.width; }
+    uint32_t height() const { return this->swapChainExtent.height; }
 
     float extentAspectRatio() {
       return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);

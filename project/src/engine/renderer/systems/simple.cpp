@@ -1,5 +1,5 @@
 #include "engine/renderer/systems/Simple.h"
-#include <engine/entity/components/Mesh.h>
+#include <engine/scene/components/Mesh.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -54,16 +54,16 @@ void Simple::createPipeline(VkRenderPass renderPass) {
   );
 }
 
-void Simple::renderScene(VkCommandBuffer commandBuffer, Scene& scene) {
+void Simple::renderScene(VkCommandBuffer commandBuffer, Scene& scene, const SceneCamera& sceneCamera) {
   this->pipeline->bind(commandBuffer);
   auto group = scene.viewEntitiesWith<Components::Mesh, Components::Transform>();
+
+  auto projectionView = sceneCamera.getProjection() * sceneCamera.getView();
+
   for (auto entity : group) {
     auto [mesh, transform] = group.get<Components::Mesh, Components::Transform>(entity);
-    transform.rotation.y = glm::mod(transform.rotation.y + 0.0005f, glm::two_pi<float>());
-    transform.rotation.x = glm::mod(transform.rotation.x + 0.001f, glm::two_pi<float>());
-
     SimplePushConstantData data;
-    data.transform = static_cast<glm::mat4>(transform);
+    data.transform = projectionView * static_cast<glm::mat4>(transform);
     data.color = mesh.color;
 
     vkCmdPushConstants(
