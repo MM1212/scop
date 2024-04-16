@@ -52,26 +52,59 @@ namespace Scop::Utils {
 
   glm::vec3 Hsv2rgb(glm::vec3 in)
   {
-    in.x = std::fmod(100.0 + in.x, 1.0);                                       // Ensure [0,1[
+    double      hh, p, q, t, ff;
+    long        i;
+    glm::vec3         out;
 
-    float   HueSlice = 6.0 * in.x;                                            // In [0,6[
-    float   HueSliceInteger = std::floor(HueSlice);
-    float   HueSliceInterpolant = HueSlice - HueSliceInteger;                   // In [0,1[ for each hue slice
+    if (in.y <= 0.0) {       // < is bogus, just shuts up warnings
+      out.r = in.z;
+      out.g = in.z;
+      out.b = in.z;
+      return out;
+    }
+    hh = in.x;
+    if (hh >= 360.0) hh = 0.0;
+    hh /= 60.0;
+    i = (long)hh;
+    ff = hh - i;
+    p = in.z * (1.0 - in.y);
+    q = in.z * (1.0 - (in.y * ff));
+    t = in.z * (1.0 - (in.y * (1.0 - ff)));
 
-    glm::vec3  TempRGB = glm::vec3(in.z * (1.0 - in.y),
-      in.z * (1.0 - in.y * HueSliceInterpolant),
-      in.z * (1.0 - in.y * (1.0 - HueSliceInterpolant)));
+    switch (i) {
+    case 0:
+      out.r = in.z;
+      out.g = t;
+      out.b = p;
+      break;
+    case 1:
+      out.r = q;
+      out.g = in.z;
+      out.b = p;
+      break;
+    case 2:
+      out.r = p;
+      out.g = in.z;
+      out.b = t;
+      break;
 
-    float   IsOddSlice = std::fmod(HueSliceInteger, 2.0);                          // 0 if even (slices 0, 2, 4), 1 if odd (slices 1, 3, 5)
-    float   ThreeSliceSelector = 0.5 * (HueSliceInteger - IsOddSlice);          // (0, 1, 2) corresponding to slices (0, 2, 4) and (1, 3, 5)
-
-    glm::vec3  ScrollingRGBForEvenSlices = glm::vec3(in.z, glm::vec2{ TempRGB.z, TempRGB.x });           // (V, Temp Blue, Temp Red) for even slices (0, 2, 4)
-    glm::vec3  ScrollingRGBForOddSlices = glm::vec3(TempRGB.y, in.z, TempRGB.x);  // (Temp Green, V, Temp Red) for odd slices (1, 3, 5)
-    glm::vec3  ScrollingRGB = glm::lerp(ScrollingRGBForEvenSlices, ScrollingRGBForOddSlices, IsOddSlice);
-
-    float   IsNotFirstSlice = glm::saturate(ThreeSliceSelector);                   // 1 if NOT the first slice (true for slices 1 and 2)
-    float   IsNotSecondSlice = glm::saturate(ThreeSliceSelector - 1.0);              // 1 if NOT the first or second slice (true only for slice 2)
-
-    return  glm::lerp(ScrollingRGB, glm::lerp(ScrollingRGB, glm::vec3{ ScrollingRGB.y, ScrollingRGB.z, ScrollingRGB.x }, IsNotSecondSlice), IsNotFirstSlice);
+    case 3:
+      out.r = p;
+      out.g = q;
+      out.b = in.z;
+      break;
+    case 4:
+      out.r = t;
+      out.g = p;
+      out.b = in.z;
+      break;
+    case 5:
+    default:
+      out.r = in.z;
+      out.g = p;
+      out.b = q;
+      break;
+    }
+    return out;
   }
 }

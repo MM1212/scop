@@ -131,10 +131,9 @@ static Entity CreateLight(
 static std::vector<glm::vec3> GenerateRainbowColors(int count) {
   std::vector<glm::vec3> colors;
   for (int i = 0; i < count; i++) {
-    float hue = i / static_cast<float>(count);
+    float hue = i / static_cast<float>(count) * 360.f;
     glm::vec3 hsvColor = glm::vec3(hue, 1.f, 1.0f); // HSV color
     glm::vec3 rgbColor = Utils::Hsv2rgb(hsvColor);
-    std::cout << "Color: " << rgbColor.r << ", " << rgbColor.g << ", " << rgbColor.b << std::endl;
     colors.push_back(rgbColor);
   }
   return colors;
@@ -157,7 +156,7 @@ void App::loadEntities(const std::vector<std::string_view>& modelPaths) {
   floor.addComponent<Components::Mesh>(floorModel);
   auto& floorTransform = floor.transform();
   floorTransform.translation = { 0.f, .5f, 0.f };
-  floorTransform.scale = { 3.f, 1.f, 3.f };
+  floorTransform.scale = { 12.f, 1.f, 12.f };
 
   CreateLight<Components::GlobalLight>(
     this->scene, "Ambient Light",
@@ -184,7 +183,7 @@ void App::loadEntities(const std::vector<std::string_view>& modelPaths) {
       newPosition,
       glm::vec4{ lightColors[i], .25f },
       true,
-      10.f
+      100.f
     );
   }
   // CreateLight<Components::PointLight>

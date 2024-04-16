@@ -34,8 +34,8 @@ void main() {
   for (int i = 0; i < ubo.numPointLights; i++) {
     Light light = ubo.pointLights[i];
     // check if distance to light is within range
-    // if (light.range > 0.0 && length(light.position.xyz - fragWorldPosition) > light.range)
-    //   continue;
+    if (light.range > 0.0 && length(light.position.xyz - fragWorldPosition) > light.range)
+      continue;
     vec3 lightDirection = light.position.xyz - fragWorldPosition;
     float attenuation = 1.0 / dot(lightDirection, lightDirection);
     float cosAngIncidence = max(dot(surfaceNormal, normalize(lightDirection)), 0);
