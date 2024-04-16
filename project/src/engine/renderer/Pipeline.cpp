@@ -69,14 +69,12 @@ void Pipeline::createGraphicsPipeline(
   shaderStages[1].pNext = nullptr;
   shaderStages[1].pSpecializationInfo = nullptr;
 
-  auto bindingDescriptions = Model::Vertex::GetBindingDescriptions();
-  auto attributeDescriptions = Model::Vertex::GetAttributeDescriptions();
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
-  vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
-  vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+  vertexInputInfo.vertexBindingDescriptionCount = configInfo.bindingDescriptions.size();
+  vertexInputInfo.vertexAttributeDescriptionCount = configInfo.attributeDescriptions.size();
+  vertexInputInfo.pVertexBindingDescriptions = configInfo.bindingDescriptions.data();
+  vertexInputInfo.pVertexAttributeDescriptions = configInfo.attributeDescriptions.data();
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -185,6 +183,9 @@ void Pipeline::SetupDefaultConfigInfo(Pipeline::ConfigInfo& configInfo) {
   configInfo.dynamicStateInfo.dynamicStateCount = configInfo.dynamicStateEnables.size();
   configInfo.dynamicStateInfo.pDynamicStates = configInfo.dynamicStateEnables.data();
   configInfo.dynamicStateInfo.flags = 0;
+
+  configInfo.bindingDescriptions = Model::Vertex::GetBindingDescriptions();
+  configInfo.attributeDescriptions = Model::Vertex::GetAttributeDescriptions();
 }
 
 void Pipeline::bind(VkCommandBuffer commandBuffer) {

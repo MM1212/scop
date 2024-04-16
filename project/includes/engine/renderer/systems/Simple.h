@@ -7,21 +7,18 @@
 #include <engine/scene/Scene.h>
 #include <engine/renderer/FrameInfo.h>
 
-namespace Scop::Renderer::Systems {
-  class Simple {
-  public:
-    Simple(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalDescriptorSetLayout);
-    ~Simple();
-    Simple(const Simple&) = delete;
-    Simple& operator=(const Simple&) = delete;
+#include "Base.h"
 
-    void renderScene(const FrameInfo& frameInfo, Scene& scene);
+namespace Scop::Renderer::Systems {
+  class Simple : public Base {
+  public:
+    Simple(const SystemInfo& dependencies);
+    // ~Simple();
+    // Simple(const Simple&) = delete;
+    // Simple& operator=(const Simple&) = delete;
+    void update(const FrameInfo&) {}
+    void render(const FrameInfo& frameInfo, Scene& scene);
   private:
     void createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout);
-    void createPipeline(VkRenderPass renderPass);
-
-    Device& device;
-    std::unique_ptr<Pipeline> pipeline;
-    VkPipelineLayout pipelineLayout;
   };
 }

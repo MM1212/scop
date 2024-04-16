@@ -13,14 +13,11 @@
 #include <engine/input/Input.h>
 #include <engine/renderer/MemBuffer.h>
 #include <engine/renderer/FrameInfo.h>
+#include <engine/renderer/systems/Simple.h>
+#include <engine/renderer/systems/Billboards.h>
+#include <engine/renderer/systems/Lighting.h>
 
 using namespace Scop;
-
-struct GlobalUbo {
-  alignas(16) glm::mat4 projectionView{ 1.f };
-  alignas(16) glm::vec3 globalLightDirection = glm::normalize(glm::vec3{ 1.f, -3.f, -1.f });
-  alignas(16) glm::vec3 globalLightColor = glm::vec3{1.f, .7f, .5f };
-};
 
 App* App::instance = nullptr;
 
@@ -38,7 +35,7 @@ void App::run() {
   for (auto& buffer : globalUboBuffers) {
     buffer = std::make_unique<Renderer::MemBuffer>(
       this->device,
-      sizeof(GlobalUbo),
+      sizeof(Renderer::GlobalUbo),
       1,
       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
@@ -47,7 +44,7 @@ void App::run() {
   }
 
   auto globalSetLayout = Renderer::DescriptorSetLayout::Builder(this->device)
-    .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+    .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
     .build();
 
   std::vector<VkDescriptorSet> globalDescriptorSets(Renderer::Swapchain::MAX_FRAMES_IN_FLIGHT);
@@ -57,9 +54,17 @@ void App::run() {
       .write(0, &bufferInfo)
       .build(globalDescriptorSets[i]);
   }
-  Renderer::Systems::Simple simpleRenderSystem{ this->device, this->renderer.getSwapchainRenderPass(), globalSetLayout->getHandle() };
+  Renderer::Systems::SystemInfo systemInfo{
+    this->device,
+    this->renderer.getSwapchainRenderPass(),
+    globalSetLayout->getHandle()
+  };
+  Renderer::Systems::Simple simpleRenderSystem(systemInfo);
+  Renderer::Systems::Billboards billboardsSystem(systemInfo);
+  Renderer::Systems::Lighting lightingSystem;
 
-  this->sceneCamera.setPerspective(glm::radians(50.f), .1f, 10.f);
+  this->sceneCamera.setPerspective(glm::radians(50.f), .1f, 100.f);
+  this->sceneCamera.setViewYXZ(glm::vec3{ .88f, -0.95f, -1.95f }, glm::vec3{ 0.41f, 3.17f, 0.f });
 
   auto currentTime = std::chrono::high_resolution_clock::now();
   Input::SetMouseMode(Input::MouseMode::Hidden);
@@ -74,23 +79,29 @@ void App::run() {
     if (!cmdBuffer)
       continue;
     auto frameIndex = this->renderer.getFrameIndex();
-    const Renderer::FrameInfo frameInfo{
+    Renderer::FrameInfo frameInfo{
       deltaTime,
       frameIndex,
       cmdBuffer,
       this->sceneCamera,
-      globalDescriptorSets[frameIndex]
+      globalDescriptorSets[frameIndex],
+      {}
     };
 
     // update
-    GlobalUbo ubo{};
+    Renderer::GlobalUbo& ubo = frameInfo.globalUbo;
+    ubo.projection = this->sceneCamera.getProjection();
+    ubo.view = this->sceneCamera.getView();
     ubo.projectionView = this->sceneCamera.getProjectionView();
+    lightingSystem.update(frameInfo, this->scene);
+
     globalUboBuffers[frameIndex]->writeTo(&ubo);
     globalUboBuffers[frameIndex]->flush();
 
     // render
     this->renderer.beginSwapchainRenderPass(cmdBuffer);
-    simpleRenderSystem.renderScene(frameInfo, this->scene);
+    simpleRenderSystem.render(frameInfo, this->scene);
+    billboardsSystem.render(frameInfo, this->scene);
     this->renderer.endSwapchainRenderPass(cmdBuffer);
     this->renderer.endFrame();
     vkDeviceWaitIdle(this->device.getHandle());
@@ -98,16 +109,85 @@ void App::run() {
   vkDeviceWaitIdle(this->device.getHandle());
 }
 
+template <typename T>
+static Entity CreateLight(
+  Scene& scene,
+  const std::string_view tag,
+  glm::vec3 position,
+  glm::vec4 color,
+  bool addBillboard = false,
+  float range = 10.0f
+) {
+  Entity entity = scene.createEntity(tag);
+  entity.transform().translation = position;
+  entity.addComponent<T>(color, range);
+  if (addBillboard)
+    entity.addComponent<Components::Billboard>(color, glm::vec2{ .02f }, true);
+  return entity;
+}
+
+#include <glm/gtc/color_space.hpp>
+#include <utils/rgb.h>
+static std::vector<glm::vec3> GenerateRainbowColors(int count) {
+  std::vector<glm::vec3> colors;
+  for (int i = 0; i < count; i++) {
+    float hue = i / static_cast<float>(count);
+    glm::vec3 hsvColor = glm::vec3(hue, 1.f, 1.0f); // HSV color
+    glm::vec3 rgbColor = Utils::Hsv2rgb(hsvColor);
+    std::cout << "Color: " << rgbColor.r << ", " << rgbColor.g << ", " << rgbColor.b << std::endl;
+    colors.push_back(rgbColor);
+  }
+  return colors;
+}
+
 void App::loadEntities(const std::vector<std::string_view>& modelPaths) {
   uint32_t i = 0;
   for (const auto path : modelPaths) {
     std::shared_ptr<Renderer::Model> cubeModel = Renderer::Model::CreateFromFile(this->device, path);
     auto entity = this->scene.createEntity("Cube");
-    entity.addComponent<Components::Mesh>(cubeModel, glm::vec3{1.f, .0f, .2f});
+    entity.addComponent<Components::Mesh>(cubeModel);
     auto& transform = entity.transform();
-    transform.translation = { 0.f, 0.f, -2.5f + 2.f * i++ };
-    transform.rotation = { 0.f, 0.f, glm::pi<float>() };
-    transform.scale = glm::vec3(1.f);
+    transform.translation = { -0.5f + 1.f * i++, 0.5f, 0.f };
+    // transform.rotation = { 0.f, 0.f, glm::pi<float>() };
+    transform.scale = glm::vec3{ 3.f, 1.5f, 3.f };
   }
+
+  auto floor = this->scene.createEntity("Floor");
+  auto floorModel = Renderer::Model::CreateFromFile(this->device, "assets/models/quad.obj");
+  floor.addComponent<Components::Mesh>(floorModel);
+  auto& floorTransform = floor.transform();
+  floorTransform.translation = { 0.f, .5f, 0.f };
+  floorTransform.scale = { 3.f, 1.f, 3.f };
+
+  CreateLight<Components::GlobalLight>(
+    this->scene, "Ambient Light",
+    glm::vec3{ .0f },
+    glm::vec4{ 1.f,1.f, 1.f, .02f }
+  );
+  // CreateLight<Components::PointLight>(
+  //   this->scene, "Point Light",
+  //   glm::vec3{ 1.f, 0.f, 0.f },
+  //   glm::vec4{ .9f,.5f, .3f, .25f },
+  //   true,
+  //   10.f
+  // );
+  std::vector<glm::vec3> lightColors = GenerateRainbowColors(16);
+
+  for (uint32_t i = 0; i < lightColors.size(); i++) {
+    auto rotation = glm::rotate(
+      glm::mat4(1.f),
+      (i * glm::two_pi<float>()) / lightColors.size(),
+      { 0.f, -1.f, 0.f });
+    auto newPosition = glm::vec3(rotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+    CreateLight<Components::PointLight>(
+      this->scene, "Point Light",
+      newPosition,
+      glm::vec4{ lightColors[i], .25f },
+      true,
+      10.f
+    );
+  }
+  // CreateLight<Components::PointLight>
+
 }
 

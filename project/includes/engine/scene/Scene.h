@@ -3,8 +3,11 @@
 #include <entt/entt.hpp>
 #include <utils/Random.h>
 #include <engine/scene/components/all.h>
-#include <unordered_map>
 #include <engine/scene/SceneCamera.h>
+
+#include <unordered_map>
+#include <string_view>
+#include <vector>
 
 namespace Scop {
   class Entity;
@@ -16,6 +19,8 @@ namespace Scop {
     Scene& operator=(const Scene&) = delete;
 
     Entity createEntity(const std::string_view tag = "");
+    Entity getEntity(entt::entity id);
+    std::vector<Entity> getEntitiesByTag(const std::string_view tag);
     void destroyEntity(Entity entity);
     bool entityExists(entt::entity id) const;
     bool entityExists(uint64_t uuid) const;
@@ -32,6 +37,7 @@ namespace Scop {
     auto viewEntitiesWith() {
       return this->registry.view<Components...>();
     }
+
   private:
     uint64_t id = 0;
     entt::registry registry;

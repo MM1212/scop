@@ -4,7 +4,6 @@
 #include <engine/scene/Entity.h>
 #include <engine/renderer/Renderer.h>
 #include <engine/scene/Scene.h>
-#include <engine/renderer/systems/Simple.h>
 #include <engine/renderer/Descriptors.h>
 #include <memory>
 #include <vector>

@@ -6,26 +6,26 @@
 
 using Scop::Renderer::Systems::Simple;
 
-struct SimplePushConstantData {
+struct BillboardsPushConstantData {
   glm::mat4 modelMatrix{ 1.0f };
   glm::mat4 normalMatrix{ 1.0f };
 };
 
-Simple::Simple(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalDescriptorSetLayout)
-  : device(device) {
-  this->createPipelineLayout(globalDescriptorSetLayout);
-  this->createPipeline(renderPass);
-}
-
-Simple::~Simple() {
-  vkDestroyPipelineLayout(this->device.getHandle(), this->pipelineLayout, nullptr);
+Simple::Simple(
+  const SystemInfo& deps
+) : Base(
+  deps,
+  SHADERS_PATH"simple.vert.spv",
+  SHADERS_PATH"simple.frag.spv"
+) {
+  this->init(deps);
 }
 
 void Simple::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
   VkPushConstantRange pushConstantRange{};
   pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   pushConstantRange.offset = 0;
-  pushConstantRange.size = sizeof(SimplePushConstantData);
+  pushConstantRange.size = sizeof(BillboardsPushConstantData);
 
   std::vector<VkDescriptorSetLayout> layouts = { globalDescriptorSetLayout };
 
@@ -40,23 +40,7 @@ void Simple::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayou
     throw std::runtime_error("Failed to create pipeline layout");
 }
 
-void Simple::createPipeline(VkRenderPass renderPass) {
-  assert(this->pipelineLayout != VK_NULL_HANDLE && "pipeline layout is null");
-  Pipeline::ConfigInfo pipelineConfig{};
-
-  Pipeline::SetupDefaultConfigInfo(pipelineConfig);
-  pipelineConfig.renderPass = renderPass;
-  pipelineConfig.pipelineLayout = this->pipelineLayout;
-
-  this->pipeline = std::make_unique<Pipeline>(
-    this->device,
-    SHADERS_PATH"simple.vert.spv",
-    SHADERS_PATH"simple.frag.spv",
-    pipelineConfig
-  );
-}
-
-void Simple::renderScene(const FrameInfo& frameInfo, Scene& scene) {
+void Simple::render(const FrameInfo& frameInfo, Scene& scene) {
   this->pipeline->bind(frameInfo.commandBuffer);
 
   vkCmdBindDescriptorSets(
@@ -70,9 +54,9 @@ void Simple::renderScene(const FrameInfo& frameInfo, Scene& scene) {
   auto group = scene.viewEntitiesWith<Components::Mesh, Components::Transform>();
   for (auto entity : group) {
     auto [mesh, transform] = group.get<Components::Mesh, Components::Transform>(entity);
-    SimplePushConstantData data;
+    BillboardsPushConstantData data;
     auto modelMatrix = static_cast<glm::mat4>(transform);
-    data.modelMatrix =  modelMatrix;
+    data.modelMatrix = modelMatrix;
     data.normalMatrix = transform.computeNormalMatrix();
 
     vkCmdPushConstants(
@@ -80,7 +64,7 @@ void Simple::renderScene(const FrameInfo& frameInfo, Scene& scene) {
       this->pipelineLayout,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0,
-      sizeof(SimplePushConstantData),
+      sizeof(BillboardsPushConstantData),
       &data
     );
     mesh.model->bind(frameInfo.commandBuffer);

@@ -27,3 +27,21 @@ bool Scene::entityExists(entt::entity id) const {
 bool Scene::entityExists(uint64_t uuid) const {
   return this->entityMap.find(uuid) != this->entityMap.end();
 }
+
+Entity Scene::getEntity(entt::entity id) {
+  if (!this->entityExists(id))
+    return Entity{};
+  return Entity{ id, this };
+}
+
+std::vector<Entity> Scene::getEntitiesByTag(const std::string_view tag) {
+  auto view = this->viewEntitiesWith<Components::ID>();
+  std::vector<Entity> entities;
+  entities.reserve(view.size());
+  for (auto handle : view) {
+    auto& id = this->registry.get<Components::ID>(handle);
+    if (id.tag == tag)
+      entities.emplace_back(handle, this);
+  }
+  return entities;
+}

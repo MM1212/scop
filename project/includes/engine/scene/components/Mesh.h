@@ -10,6 +10,7 @@ namespace Scop::Components {
     Mesh(const Mesh&) = default;
     Mesh& operator=(const Mesh&) = default;
     Mesh(std::shared_ptr<Renderer::Model> model) : model(model) {}
+    Mesh(std::unique_ptr<Renderer::Model>& model) : model(std::move(model)) {}
     Mesh(std::shared_ptr<Renderer::Model> model, const glm::vec3& color) : model(model), color(color) {}
 
     std::shared_ptr<Renderer::Model> model;

@@ -12,6 +12,8 @@ namespace Scop::Renderer {
       ConfigInfo(const ConfigInfo&) = delete;
       ConfigInfo& operator=(const ConfigInfo&) = delete;
 
+      std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+      std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
       VkPipelineViewportStateCreateInfo viewportInfo;
       VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
       VkPipelineRasterizationStateCreateInfo rasterizerInfo;
