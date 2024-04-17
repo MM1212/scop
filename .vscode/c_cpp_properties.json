@@ -1,14 +1,24 @@
 {
+  "env": {
+    "projectIncludePath": [
+      "${workspaceFolder}/project/includes",
+      "${workspaceFolder}/vendor/glfw/include",
+      "${workspaceFolder}/vendor/glm",
+      "${workspaceFolder}/vendor/entt/src",
+      "${workspaceFolder}/vendor/tinyobjloader",
+    ],
+    "projectDefines": [
+      "GLFW_INCLUDE_VULKAN",
+      "GLM_FORCE_RADIANS",
+      "GLM_FORCE_DEPTH_ZERO_TO_ONE",
+      // "GLM_FORCE_LEFT_HANDED",
+      "SHADERS_PATH=\"\""
+    ]
+  },
   "configurations": [
     {
       "name": "Linux",
-      "includePath": [
-        "${workspaceFolder}/project/includes",
-        "${workspaceFolder}/vendor/glfw/include",
-        "${workspaceFolder}/vendor/glm",
-        "${workspaceFolder}/vendor/entt/src",
-        "${workspaceFolder}/vendor/tinyobjloader"
-      ],
+      "includePath": ["${projectIncludePath"],
       "defines": [
         "GLFW_INCLUDE_VULKAN",
         "GLM_FORCE_RADIANS",
@@ -17,9 +27,27 @@
         "SHADERS_PATH=\"\""
       ],
       "compilerPath": "/usr/bin/clang",
-      "cppStandard": "c++23",
+      "cppStandard": "c++20",
       "intelliSenseMode": "linux-clang-x64"
+    },
+    {
+      "name": "Win32",
+      "includePath": [
+        "${projectIncludePath}",
+        "${env:VULKAN_SDK}/Include"
+      ],
+      "defines": [
+        "GLFW_INCLUDE_VULKAN",
+        "GLM_FORCE_RADIANS",
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",
+        // "GLM_FORCE_LEFT_HANDED",
+        "SHADERS_PATH=\"\""
+      ],
+      "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.39.33519/bin/Hostx64/x64/cl.exe",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "windows-msvc-x64"
     }
   ],
-  "version": 4
+  "version": 4,
+  "enableConfigurationSquiggles": true
 }
