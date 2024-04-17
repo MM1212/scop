@@ -1,5 +1,7 @@
 #include "engine/renderer/Descriptors.h"
 
+#include <stdexcept>
+
 using namespace Scop::Renderer;
 
 DescriptorSetLayout::Builder& DescriptorSetLayout::Builder::addBinding(
