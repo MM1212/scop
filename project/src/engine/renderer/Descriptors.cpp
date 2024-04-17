@@ -168,5 +168,5 @@ void DescriptorWriter::overwrite(VkDescriptorSet& set) {
   for (auto& write : this->writes) {
     write.dstSet = set;
   }
-  vkUpdateDescriptorSets(this->pool.device.getHandle(), this->writes.size(), this->writes.data(), 0, nullptr);
+  vkUpdateDescriptorSets(this->pool.device.getHandle(), static_cast<uint32_t>(this->writes.size()), this->writes.data(), 0, nullptr);
 }

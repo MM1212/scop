@@ -36,9 +36,9 @@ Model::Model(
 Model::~Model() {}
 
 void Model::createVertexBuffer(const std::vector<Vertex>& vertices) {
-  this->vertexCount = vertices.size();
+  this->vertexCount = static_cast<uint32_t>(vertices.size());
   assert(this->vertexCount >= 3 && "vertex count must be at least 3");
-  uint32_t vertexSize = sizeof(Vertex);
+  size_t vertexSize = sizeof(Vertex);
   VkDeviceSize bufferSize = vertexSize * this->vertexCount;
   MemBuffer stagingBuffer{
     this->device,
@@ -67,11 +67,11 @@ void Model::createVertexBuffer(const std::vector<Vertex>& vertices) {
 }
 
 void Model::createIndexBuffer(const std::vector<uint32_t>& indices) {
-  this->indexCount = indices.size();
+  this->indexCount = static_cast<uint32_t>(indices.size());
   this->hasIndexBuffer = this->indexCount > 0;
   if (!this->hasIndexBuffer)
     return;
-  uint32_t indexSize = sizeof(uint32_t);
+  size_t indexSize = sizeof(uint32_t);
   VkDeviceSize bufferSize = indexSize * this->indexCount;
 
   MemBuffer stagingBuffer{

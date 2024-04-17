@@ -6,8 +6,8 @@
 namespace Scop::Utils {
   glm::vec3 Rgb2hsv(glm::vec3 in)
   {
-    glm::vec3         out;
-    double      min, max, delta;
+    glm::vec3 out;
+    float min, max, delta;
 
     min = in.r < in.g ? in.r : in.g;
     min = min < in.b ? min : in.b;
@@ -23,13 +23,13 @@ namespace Scop::Utils {
       out.x = 0; // undefined, maybe nan?
       return out;
     }
-    if (max > 0.0) { // NOTE: if Max is == 0, this divide would cause a crash
+    if (max > 0.f) { // NOTE: if Max is == 0, this divide would cause a crash
       out.s = (delta / max);                  // s
     }
     else {
       // if max is 0, then r = g = b = 0              
       // s = 0, h is undefined
-      out.s = 0.0;
+      out.s = 0.f;
       out.x = NAN;                            // its now undefined
       return out;
     }
@@ -37,14 +37,14 @@ namespace Scop::Utils {
       out.x = (in.g - in.b) / delta;        // between yellow & magenta
     else
       if (in.g >= max)
-        out.x = 2.0 + (in.b - in.r) / delta;  // between cyan & yellow
+        out.x = 2.f + (in.b - in.r) / delta;  // between cyan & yellow
       else
-        out.x = 4.0 + (in.r - in.g) / delta;  // between magenta & cyan
+        out.x = 4.f + (in.r - in.g) / delta;  // between magenta & cyan
 
-    out.x *= 60.0;                              // degrees
+    out.x *= 60.f;                              // degrees
 
-    if (out.x < 0.0)
-      out.x += 360.0;
+    if (out.x < 0.f)
+      out.x += 360.f;
 
     return out;
   }
@@ -52,24 +52,24 @@ namespace Scop::Utils {
 
   glm::vec3 Hsv2rgb(glm::vec3 in)
   {
-    double      hh, p, q, t, ff;
-    long        i;
-    glm::vec3         out;
+    float hh, p, q, t, ff;
+    long i;
+    glm::vec3 out{};
 
-    if (in.y <= 0.0) {       // < is bogus, just shuts up warnings
+    if (in.y <= 0.f) {       // < is bogus, just shuts up warnings
       out.r = in.z;
       out.g = in.z;
       out.b = in.z;
       return out;
     }
     hh = in.x;
-    if (hh >= 360.0) hh = 0.0;
-    hh /= 60.0;
+    if (hh >= 360.f) hh = 0.f;
+    hh /= 60.f;
     i = (long)hh;
     ff = hh - i;
-    p = in.z * (1.0 - in.y);
-    q = in.z * (1.0 - (in.y * ff));
-    t = in.z * (1.0 - (in.y * (1.0 - ff)));
+    p = in.z * (1.f - in.y);
+    q = in.z * (1.f - (in.y * ff));
+    t = in.z * (1.f - (in.y * (1.f - ff)));
 
     switch (i) {
     case 0:

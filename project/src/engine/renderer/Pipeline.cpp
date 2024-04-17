@@ -71,8 +71,8 @@ void Pipeline::createGraphicsPipeline(
 
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputInfo.vertexBindingDescriptionCount = configInfo.bindingDescriptions.size();
-  vertexInputInfo.vertexAttributeDescriptionCount = configInfo.attributeDescriptions.size();
+  vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(configInfo.bindingDescriptions.size());
+  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configInfo.attributeDescriptions.size());
   vertexInputInfo.pVertexBindingDescriptions = configInfo.bindingDescriptions.data();
   vertexInputInfo.pVertexAttributeDescriptions = configInfo.attributeDescriptions.data();
 
@@ -180,7 +180,7 @@ void Pipeline::SetupDefaultConfigInfo(Pipeline::ConfigInfo& configInfo) {
 
   configInfo.dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
   configInfo.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  configInfo.dynamicStateInfo.dynamicStateCount = configInfo.dynamicStateEnables.size();
+  configInfo.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
   configInfo.dynamicStateInfo.pDynamicStates = configInfo.dynamicStateEnables.data();
   configInfo.dynamicStateInfo.flags = 0;
 

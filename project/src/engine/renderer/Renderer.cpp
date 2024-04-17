@@ -40,7 +40,7 @@ void Renderer::createCommandBuffers() {
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.commandPool = this->device.getCommandPool();
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandBufferCount = this->commandBuffers.size();
+  allocInfo.commandBufferCount = static_cast<uint32_t>(this->commandBuffers.size());
 
   if (vkAllocateCommandBuffers(this->device.getHandle(), &allocInfo, this->commandBuffers.data()) != VK_SUCCESS)
     throw std::runtime_error("Failed to allocate command buffers");
@@ -50,7 +50,7 @@ void Renderer::freeCommandBuffers() {
   vkFreeCommandBuffers(
     this->device.getHandle(),
     this->device.getCommandPool(),
-    this->commandBuffers.size(),
+    static_cast<uint32_t>(this->commandBuffers.size()),
     this->commandBuffers.data()
   );
   this->commandBuffers.clear();
@@ -110,7 +110,7 @@ void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
   clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
   clearValues[1].depthStencil = { 1.0f, 0 };
 
-  renderPassInfo.clearValueCount = clearValues.size();
+  renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
   renderPassInfo.pClearValues = clearValues.data();
 
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -119,8 +119,8 @@ void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
   VkRect2D scissor{ {0,0}, this->swapchain->getExtent() };
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = this->swapchain->getExtent().width;
-  viewport.height = this->swapchain->getExtent().height;
+  viewport.width = static_cast<float>(this->swapchain->getExtent().width);
+  viewport.height = static_cast<float>(this->swapchain->getExtent().height);
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 
