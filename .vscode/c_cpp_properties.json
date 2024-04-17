@@ -5,7 +5,7 @@
       "${workspaceFolder}/vendor/glfw/include",
       "${workspaceFolder}/vendor/glm",
       "${workspaceFolder}/vendor/entt/src",
-      "${workspaceFolder}/vendor/tinyobjloader",
+      "${workspaceFolder}/vendor/tinyobjloader"
     ],
     "projectDefines": [
       "GLFW_INCLUDE_VULKAN",
@@ -18,7 +18,7 @@
   "configurations": [
     {
       "name": "Linux",
-      "includePath": ["${projectIncludePath"],
+      "includePath": ["${projectIncludePath}"],
       "defines": [
         "GLFW_INCLUDE_VULKAN",
         "GLM_FORCE_RADIANS",
