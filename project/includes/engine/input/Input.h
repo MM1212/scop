@@ -24,4 +24,6 @@ namespace Scop::Input {
   void SetMouseMode(MouseMode mode);
   MouseMode GetMouseMode();
   void SetMousePosition(const glm::vec2& position);
+  void Update();
+  void Init(GLFWwindow* window);
 }

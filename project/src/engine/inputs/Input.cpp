@@ -1,46 +1,39 @@
 #include "App.h"
 #include "engine/input/Input.h"
+#include "engine/input/InputManager_Internal.h"
 
 namespace Scop::Input {
-  static GLFWwindow* GetWindow() {
-    return const_cast<GLFWwindow*>(App::Get().getWindow().getHandle());
+  void Update() {
+    InputManager_Internal::Update();
+  }
+  void Init(GLFWwindow* window) {
+    InputManager_Internal::BindCallbacks(window);
+  }
+  static inline InputManager* GetManager() {
+    static auto manager = InputManager::Get();
+    return manager;
   }
   bool IsKeyPressed(KeyCode key) {
-    auto* window = GetWindow();
-    auto state = glfwGetKey(window, static_cast<int>(key));
-    return state == GLFW_PRESS || state == GLFW_REPEAT;
+    return GetManager()->IsKeyPressed(key);
   }
   bool IsKeyDown(KeyCode key) {
-    auto* window = GetWindow();
-    auto state = glfwGetKey(window, static_cast<int>(key));
-    return state == GLFW_PRESS;
+    return GetManager()->IsKeyJustPressed(key);
   }
   bool IsKeyUp(KeyCode key) {
-    auto* window = GetWindow();
-    auto state = glfwGetKey(window, static_cast<int>(key));
-    return state == GLFW_RELEASE;
+    return GetManager()->IsKeyJustReleased(key);
   }
 
   bool IsMouseButtonPressed(MouseCode button) {
-    auto* window = GetWindow();
-    auto state = glfwGetMouseButton(window, static_cast<int>(button));
-    return state == GLFW_PRESS || state == GLFW_REPEAT;
+    return GetManager()->IsKeyPressed(button);
   }
   bool IsMouseButtonDown(MouseCode button) {
-    auto* window = GetWindow();
-    auto state = glfwGetMouseButton(window, static_cast<int>(button));
-    return state == GLFW_PRESS;
+    return GetManager()->IsKeyJustPressed(button);
   }
   bool IsMouseButtonUp(MouseCode button) {
-    auto* window = GetWindow();
-    auto state = glfwGetMouseButton(window, static_cast<int>(button));
-    return state == GLFW_RELEASE;
+    return GetManager()->IsKeyJustReleased(button);
   }
   glm::vec2 GetMousePosition() {
-    double x, y;
-    auto* window = GetWindow();
-    glfwGetCursorPos(window, &x, &y);
-    return { x, y };
+    return GetManager()->GetMousePosition();
   }
   float GetMouseX() {
     return GetMousePosition().x;
@@ -50,22 +43,15 @@ namespace Scop::Input {
   }
 
   glm::vec2 GetMouseDelta() {
-    static glm::vec2 lastMousePosition = GetMousePosition();
-    auto mousePosition = GetMousePosition();
-    auto delta = mousePosition - lastMousePosition;
-    lastMousePosition = mousePosition;
-    return delta;
+    return GetManager()->GetMouseDelta();
   }
   void SetMouseMode(MouseMode mode) {
-    auto* window = GetWindow();
-    glfwSetInputMode(window, GLFW_CURSOR, static_cast<int>(mode));
+    GetManager()->SetMouseMode(mode);
   }
   MouseMode GetMouseMode() {
-    auto* window = GetWindow();
-    return static_cast<MouseMode>(glfwGetInputMode(window, GLFW_CURSOR));
+    return GetManager()->GetMouseMode();
   }
   void SetMousePosition(const glm::vec2& position) {
-    auto* window = GetWindow();
-    glfwSetCursorPos(window, position.x, position.y);
+    GetManager()->SetMousePosition(position);
   }
 }

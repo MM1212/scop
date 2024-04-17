@@ -28,6 +28,7 @@ App::App() {
     .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Renderer::Swapchain::MAX_FRAMES_IN_FLIGHT)
     .build();
   App::instance = this;
+  Input::Init(this->window.getHandle());
 }
 App::~App() {}
 
@@ -71,6 +72,7 @@ void App::run() {
   auto currentTime = std::chrono::high_resolution_clock::now();
   Input::SetMouseMode(Input::MouseMode::Hidden);
   while (!this->window.shouldClose()) {
+    Input::Update();
     this->window.pollEvents();
     this->sceneCamera.setAspectRatio(this->renderer.getSwapchainExtentAspectRatio());
     auto newTime = std::chrono::high_resolution_clock::now();
