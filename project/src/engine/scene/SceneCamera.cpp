@@ -47,6 +47,7 @@ void SceneCamera::computeProjection() {
     break;
   };
   this->projectionViewMatrix = this->projection * this->viewMatrix;
+  this->inverseViewMatrix = glm::inverse(this->viewMatrix);
 }
 
 void SceneCamera::setViewDirection(glm::vec3 position, glm::vec3 direction, glm::vec3 up) {
@@ -54,6 +55,7 @@ void SceneCamera::setViewDirection(glm::vec3 position, glm::vec3 direction, glm:
   this->transform.translation = position;
   this->transform.rotation = glm::vec3{ glm::asin(-this->viewMatrix[2][1]), glm::atan(this->viewMatrix[1][0], this->viewMatrix[0][0]), 0.f };
   this->projectionViewMatrix = this->projection * this->viewMatrix;
+  this->inverseViewMatrix = glm::inverse(this->viewMatrix);
 }
 void SceneCamera::setViewTarget(glm::vec3 position, glm::vec3 target, glm::vec3 up) {
   this->setViewDirection(position, target - position, up);
@@ -84,6 +86,7 @@ void SceneCamera::setViewYXZ(glm::vec3 position, glm::vec3 rotation) {
   viewMatrix[3][1] = -glm::dot(v, position);
   viewMatrix[3][2] = -glm::dot(w, position);
   this->projectionViewMatrix = this->projection * this->viewMatrix;
+  this->inverseViewMatrix = glm::inverse(this->viewMatrix);
 }
 
 void SceneCamera::update(float deltaTime) {
@@ -140,8 +143,8 @@ void SceneCamera::update(float deltaTime) {
     changed = true;
   }
   if (changed) {
-    std::cout << "forward dir: " << forwardDir.x << " " << forwardDir.y << " " << forwardDir.z << std::endl;
-    std::cout << "right dir: " << rightDir.x << " " << rightDir.y << " " << rightDir.z << std::endl;
+    // std::cout << "forward dir: " << forwardDir.x << " " << forwardDir.y << " " << forwardDir.z << std::endl;
+    // std::cout << "right dir: " << rightDir.x << " " << rightDir.y << " " << rightDir.z << std::endl;
     // std::cout << "Camera position: " << this->transform.translation.x << " " << this->transform.translation.y << " " << this->transform.translation.z << std::endl;
     // std::cout << "Camera rotation: " << this->transform.rotation.x << " " << this->transform.rotation.y << " " << this->transform.rotation.z << std::endl;
     this->setViewYXZ(this->transform.translation, this->transform.rotation);

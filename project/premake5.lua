@@ -6,7 +6,7 @@ project "Scop"
   targetdir "bin/%{cfg.buildcfg}"
   staticruntime "off"
   stl "libc++"
-  buildoptions { "-Wall", "-Wextra", "-Werror" }
+  buildoptions { "-Wall", "-Wextra", "-Werror", "-gdwarf-2" }
 
   files {
     "src/**.cpp",

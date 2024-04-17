@@ -1,4 +1,6 @@
 #include "engine/renderer/systems/Lighting.h"
+#include <engine/input/Input.h>
+
 
 #include <glm/glm.hpp>
 #include <iostream>
@@ -7,6 +9,9 @@ using Scop::Renderer::Systems::Lighting;
 
 void Lighting::update(FrameInfo& frameInfo, Scene& scene) {
   auto rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.deltaTime, { 0.f, -1.f, 0.f });
+  if (Input::IsKeyDown(Input::Key::L))
+    this->rotateLight = !this->rotateLight;
+
   GlobalUbo& ubo = frameInfo.globalUbo;
   auto view = scene.viewEntitiesWith<Components::PointLight, Components::Transform>();
   uint32_t lightIndex = 0;
@@ -14,7 +19,8 @@ void Lighting::update(FrameInfo& frameInfo, Scene& scene) {
     auto [pointLight, transform] = view.get<Components::PointLight, Components::Transform>(entity);
     if (lightIndex >= MAX_LIGHTS) break;
     // update light position
-    transform.translation = glm::vec3(rotateLight * glm::vec4(transform.translation, 1.f));
+    if (this->rotateLight)
+      transform.translation = glm::vec3(rotateLight * glm::vec4(transform.translation, 1.f));
     ubo.pointLights[lightIndex].position = glm::vec4(transform.translation, 1.0f);
     ubo.pointLights[lightIndex].color = pointLight.color;
     ubo.pointLights[lightIndex].range = pointLight.range;

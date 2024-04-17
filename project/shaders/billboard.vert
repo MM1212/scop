@@ -30,6 +30,7 @@ layout (set = 0, binding = 0) uniform GlobalUbo {
   mat4 projection;
   mat4 view;
   mat4 projectionView;
+  mat4 inverseView;
   Light ambientLight;
   Light pointLights[MAX_LIGHTS];
   int numPointLights;

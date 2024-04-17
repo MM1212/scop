@@ -49,6 +49,8 @@ namespace Scop {
 
     const glm::mat4& getView() const { return this->viewMatrix; }
     const glm::mat4& getProjectionView() const { return this->projectionViewMatrix; }
+    const glm::mat4& getInverseView() const { return this->inverseViewMatrix; }
+    glm::vec3 getPosition() const { return glm::vec3{ this->inverseViewMatrix[3] }; }
     void setViewDirection(glm::vec3 position, glm::vec3 direction, glm::vec3 up = { 0.0f, -1.0f, 0.0f });
     void setViewTarget(glm::vec3 position, glm::vec3 target, glm::vec3 up = { 0.0f, -1.0f, 0.0f });
     void setViewYXZ(glm::vec3 position, glm::vec3 rotation);
@@ -70,6 +72,7 @@ namespace Scop {
 
     glm::mat4 viewMatrix{ 1.0f };
     glm::mat4 projectionViewMatrix{ 1.0f };
+    glm::mat4 inverseViewMatrix{ 1.0f };
   public:
     Components::Transform transform{};
     float lookSpeed = 3.f;

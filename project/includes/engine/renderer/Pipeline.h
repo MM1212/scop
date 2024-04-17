@@ -39,6 +39,7 @@ namespace Scop::Renderer {
 
     void bind(VkCommandBuffer commandBuffer);
     static void SetupDefaultConfigInfo(ConfigInfo& configInfo);
+    static void EnableAlphaBlending(ConfigInfo& configInfo);
   private:
     static std::vector<uint8_t> ReadFile(const std::string_view filePath);
 

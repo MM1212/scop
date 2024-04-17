@@ -9,5 +9,7 @@ namespace Scop::Renderer::Systems {
 
     void update(FrameInfo& frameInfo, Scene& scene);
     void render(const FrameInfo&, Scene&) {}
+  private:
+    bool rotateLight = false;
   };
 }

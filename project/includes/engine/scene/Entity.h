@@ -17,6 +17,7 @@ namespace Scop {
     Entity(const Entity&) = default;
     Entity& operator=(const Entity&) = default;
     Entity(ID handle, Scene* scene);
+    Entity(ID handle, Scene& scene);
     ~Entity() = default;
 
     operator bool() const { return this->handle != entt::null; }

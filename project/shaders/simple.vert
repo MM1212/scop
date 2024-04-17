@@ -11,7 +11,7 @@ layout (location = 1) out vec3 fragWorldPosition;
 layout (location = 2) out vec3 fragWorldNormal;
 
 layout (push_constant) uniform PushConstantData {
-  mat4 modelMatrix; // projection * view * model
+  mat4 modelMatrix; // model
   mat4 normalMatrix; // model
 } pushData;
 
@@ -26,6 +26,7 @@ layout (set = 0, binding = 0) uniform GlobalUbo {
   mat4 projection;
   mat4 view;
   mat4 projectionView;
+  mat4 inverseView;
   Light ambientLight;
   Light pointLights[MAX_LIGHTS];
   int numPointLights;

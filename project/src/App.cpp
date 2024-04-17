@@ -16,6 +16,7 @@
 #include <engine/renderer/systems/Simple.h>
 #include <engine/renderer/systems/Billboards.h>
 #include <engine/renderer/systems/Lighting.h>
+#include <systems/Profiler.hpp>
 
 using namespace Scop;
 
@@ -62,6 +63,7 @@ void App::run() {
   Renderer::Systems::Simple simpleRenderSystem(systemInfo);
   Renderer::Systems::Billboards billboardsSystem(systemInfo);
   Renderer::Systems::Lighting lightingSystem;
+  Profiler profiler;
 
   this->sceneCamera.setPerspective(glm::radians(50.f), .1f, 100.f);
   this->sceneCamera.setViewYXZ(glm::vec3{ .88f, -0.95f, -1.95f }, glm::vec3{ 0.41f, 3.17f, 0.f });
@@ -93,7 +95,9 @@ void App::run() {
     ubo.projection = this->sceneCamera.getProjection();
     ubo.view = this->sceneCamera.getView();
     ubo.projectionView = this->sceneCamera.getProjectionView();
+    ubo.inverseView = this->sceneCamera.getInverseView();
     lightingSystem.update(frameInfo, this->scene);
+    profiler.update(frameInfo.deltaTime);
 
     globalUboBuffers[frameIndex]->writeTo(&ubo);
     globalUboBuffers[frameIndex]->flush();
@@ -104,7 +108,7 @@ void App::run() {
     billboardsSystem.render(frameInfo, this->scene);
     this->renderer.endSwapchainRenderPass(cmdBuffer);
     this->renderer.endFrame();
-    vkDeviceWaitIdle(this->device.getHandle());
+    // vkDeviceWaitIdle(this->device.getHandle());
   }
   vkDeviceWaitIdle(this->device.getHandle());
 }

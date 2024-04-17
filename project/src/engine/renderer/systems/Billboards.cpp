@@ -1,10 +1,12 @@
 #include "engine/renderer/systems/Billboards.h"
 #include <engine/scene/components/Billboard.h>
+#include <engine/scene/Entity.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
 #include <iostream>
+#include <map>
 
 using Scop::Renderer::Systems::Billboards;
 
@@ -25,6 +27,7 @@ Billboards::Billboards(const SystemInfo& deps) : Base(
   this->init(deps, [](Pipeline::ConfigInfo& config) {
     config.attributeDescriptions.clear();
     config.bindingDescriptions.clear();
+    Pipeline::EnableAlphaBlending(config);
     });
 }
 
@@ -48,6 +51,15 @@ void Billboards::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetL
 }
 
 void Billboards::render(const FrameInfo& frameInfo, Scene& scene) {
+  std::map<float, Entity> sorted;
+  auto group = scene.viewEntitiesWith<Components::Billboard, Components::Transform>();
+  for (auto entity : group) {
+    auto [billboard, transform] = group.get<Components::Billboard, Components::Transform>(entity);
+
+    auto distance = frameInfo.sceneCamera.getPosition() - transform.translation;
+    float distanceSqrd = glm::dot(distance, distance);
+    sorted[distanceSqrd] = Entity{ entity, scene };
+  }
   this->pipeline->bind(frameInfo.commandBuffer);
 
   vkCmdBindDescriptorSets(
@@ -60,9 +72,10 @@ void Billboards::render(const FrameInfo& frameInfo, Scene& scene) {
 
   (void)scene;
 
-  auto group = scene.viewEntitiesWith<Components::Billboard, Components::Transform>();
-  for (auto entity : group) {
-    auto [billboard, transform] = group.get<Components::Billboard, Components::Transform>(entity);
+  for (auto it = sorted.rbegin(); it != sorted.rend(); it++) {
+    auto entity = it->second;
+    auto [billboard, transform] = group.get<Components::Billboard, Components::Transform>(entity.getHandle());
+
     BillboardsPushConstantData data;
     data.position = glm::vec4(transform.translation, 1.0f);
     data.color = billboard.color;

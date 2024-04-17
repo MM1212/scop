@@ -22,16 +22,18 @@ layout (set = 0, binding = 0) uniform GlobalUbo {
   mat4 projection;
   mat4 view;
   mat4 projectionView;
+  mat4 inverseView;
   Light ambientLight;
   Light pointLights[MAX_LIGHTS];
   int numPointLights;
 } ubo;
 
+const float M_PI = 3.14159265359;
+
 void main() {
-  if (pushData.rounded) {
     float distance = sqrt(dot(fragOffset, fragOffset));
-    if (distance >= 1.0)
+  if (pushData.rounded && distance >= 1.0)
       discard;
-  }
-  outColor = vec4(pushData.color.rgb, .2f);
+  float cosDistance =  0.5 * (cos(distance * M_PI) + 1.0);
+  outColor = vec4(pushData.color.rgb + cosDistance, cosDistance);
 }
