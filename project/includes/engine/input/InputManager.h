@@ -4,15 +4,17 @@
 #include <utils/Singleton.h>
 #include <App.h>
 
-#include <unordered_map>
+#include <array>
 #include <unordered_set>
 #include <glm/glm.hpp>
 
 namespace Scop::Input {
   class InputManager_Internal;
   class InputManager : public Singleton<InputManager> {
+  private:
+    static constexpr uint32_t MAX_KEYS = GLFW_KEY_LAST;
   public:
-    InputManager() = default;
+    InputManager() : toUpdate(MAX_KEYS) {}
     InputManager(const InputManager&) = delete;
     InputManager& operator=(const InputManager&) = delete;
 
@@ -25,11 +27,15 @@ namespace Scop::Input {
     }
     bool IsKeyJustPressed(KeyCode key) const {
       auto state = this->GetKeyState(key);
-      return state && state->justPressed;
+      return state && !state->wasPressed && state->pressed;
     }
     bool IsKeyJustReleased(KeyCode key) const {
       auto state = this->GetKeyState(key);
-      return state && state->justReleased;
+      return state && state->wasPressed && !state->pressed;
+    }
+    bool IsKeyHeld(KeyCode key) const {
+      auto state = this->GetKeyState(key);
+      return state && state->wasPressed && state->pressed;
     }
     glm::vec2 GetMousePosition() const {
       return this->mousePosition;
@@ -60,17 +66,17 @@ namespace Scop::Input {
   private:
     struct KeyState {
       bool pressed = false;
-      bool justPressed = false;
-      bool justReleased = false;
+      bool wasPressed = false;
     };
     const KeyState* GetKeyState(KeyCode key) const;
+    KeyState* GetKeyState(KeyCode key);
 
-    std::unordered_map<KeyCode, KeyState> keys;
+    std::array<KeyState, GLFW_KEY_LAST> keys{};
     std::unordered_set<KeyCode> toUpdate;
-    glm::vec2 mousePosition;
-    glm::vec2 mouseDelta;
-    glm::vec2 lastMousePosition;
-    glm::vec2 scrollOffset;
+    glm::vec2 mousePosition = { 0.0f, 0.0f };
+    glm::vec2 mouseDelta = { 0.0f, 0.0f };
+    glm::vec2 lastMousePosition = { 0.0f, 0.0f };
+    glm::vec2 scrollOffset = { 0.0f, 0.0f };
     MouseMode mouseMode = MouseMode::Normal;
 
     friend class Singleton<InputManager>;

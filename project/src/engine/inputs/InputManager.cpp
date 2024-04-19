@@ -7,14 +7,16 @@ void InputManager_Internal::HandleKeyInput(uint16_t key, int action) {
   auto& keys = inputManager->keys;
   auto& toUpdate = inputManager->toUpdate;
 
+  auto keyState = inputManager->GetKeyState(static_cast<KeyCode>(key));
+  if (!keyState) return;
   if (action == GLFW_PRESS) {
-    keys[static_cast<KeyCode>(key)].pressed = true;
-    keys[static_cast<KeyCode>(key)].justPressed = true;
+    keyState->wasPressed = keyState->pressed;
+    keyState->pressed = true;
     toUpdate.insert(static_cast<KeyCode>(key));
   }
   else if (action == GLFW_RELEASE) {
-    keys[static_cast<MouseCode>(key)].pressed = false;
-    keys[static_cast<MouseCode>(key)].justReleased = true;
+    keyState->wasPressed = keyState->pressed;
+    keyState->pressed = false;
     toUpdate.insert(static_cast<MouseCode>(key));
   }
 }
@@ -52,8 +54,8 @@ void InputManager_Internal::Update() {
   auto& toUpdate = inputManager->toUpdate;
 
   for (auto& key : toUpdate) {
-    keys[key].justPressed = false;
-    keys[key].justReleased = false;
+    keys[key].wasPressed = keys[key].pressed;
+    keys[key].pressed = false;
   }
   toUpdate.clear();
 }
@@ -66,10 +68,10 @@ void InputManager_Internal::BindCallbacks(GLFWwindow* window) {
 }
 
 const InputManager::KeyState* InputManager::GetKeyState(KeyCode key) const {
-  auto it = keys.find(key);
-  if (it == keys.end())
-    return nullptr;
-  return &it->second;
+  return &this->keys[key];
+}
+InputManager::KeyState* InputManager::GetKeyState(KeyCode key) {
+  return &this->keys[key];
 }
 
 void InputManager::SetMouseMode(MouseMode mode) {
