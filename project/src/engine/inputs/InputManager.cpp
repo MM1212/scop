@@ -55,7 +55,6 @@ void InputManager_Internal::Update() {
 
   for (auto& key : toUpdate) {
     keys[key].wasPressed = keys[key].pressed;
-    keys[key].pressed = false;
   }
   toUpdate.clear();
 }
